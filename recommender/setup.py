@@ -1,10 +1,10 @@
 import azure.functions as func
 import azure.durable_functions as df
 
-from recommender.orchestrator import recommender_orchestrator_function
-from recommender.activities.filter_bci import filter_bci_activity
-from recommender.activities.deduplicate import deduplicate_activity
-from recommender.activities.domain_agents import process_single_lead_activity
+from recommender.orchestrator import main as orchestrator_bp
+from recommender.activities.filter_bci import blueprint as filter_bci_bp
+from recommender.activities.deduplicate import blueprint as deduplicate_bp
+from recommender.activities.domain_agents import blueprint as domain_agents_bp
 
 
 def register_recommender(app: df.DFApp):
@@ -32,7 +32,8 @@ def register_recommender(app: df.DFApp):
         status = await client.get_status(instance_id)
         return func.HttpResponse(status.to_json(), mimetype="application/json")
 
-    app.register_functions(recommender_orchestrator_function)
-    app.register_functions(filter_bci_activity)
-    app.register_functions(deduplicate_activity)
-    app.register_functions(process_single_lead_activity)
+    # Register the blueprints
+    app.register_functions(orchestrator_bp)
+    app.register_functions(filter_bci_bp)
+    app.register_functions(deduplicate_bp)
+    app.register_functions(domain_agents_bp)

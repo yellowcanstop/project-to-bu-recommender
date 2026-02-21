@@ -1,112 +1,211 @@
 from dataclasses import dataclass, field
-from datetime import datetime
 import re
 
 
 @dataclass
 class BUFilter:
     name: str
-    category_keywords: dict[str, list[str]] = field(default_factory=dict)
-    project_stage: list[str] = field(default_factory=list)
-    regions: dict[str, list[str]] = field(default_factory=dict)
-    allowed_regions: list[str] = field(default_factory=list)
-    start_date_from: str | None = None
-    end_date_to: str | None = None
+    subcategory: list[str] = field(default_factory=list)
+    project_status: list[str] = field(default_factory=list)
+    project_state: list[str] = field(default_factory=list)
+    development_type: list[str] = field(default_factory=list)
+    start_date_min: str | None = None  # only year matters
+    start_date_max: str | None = None
+    end_date_min: str | None = None
     min_value: float = 0.0
+    subcategory_min_units: dict[str, int] = field(default_factory=dict)
+    development_type_min_units: dict[str, int] = field(default_factory=dict)
 
     def matches(self, row: dict) -> bool:
         if not self._matches_value(row):
             return False
-        if not self._matches_category(row):
+        if not self._matches_subcategory(row):
             return False
-        if not self._matches_region(row):
+        if not self._matches_state(row):
             return False
-        if not self._matches_stage(row):
+        if not self._matches_status(row):
             return False
         if not self._matches_dates(row):
+            return False
+        if not self._matches_development_type(row):
+            return False
+        if not self._matches_unit_minimums(row):
             return False
         return True
 
     def _matches_value(self, row: dict) -> bool:
-        val_str = str(row.get("Local Value", "0"))
+        if self.min_value <= 0:
+            return True
+        val_str = str(row.get("Local Value") or "0")
         cleaned = re.sub(r"[^\d.]", "", val_str)
         value = float(cleaned) if cleaned else 0.0
         return value >= self.min_value
 
-    def _matches_category(self, row: dict) -> bool:
-        if not self.category_keywords:
+    def _matches_subcategory(self, row: dict) -> bool:
+        if not self.subcategory:
             return True
 
-        cat_fields = []
-        for i in range(1, 6):
-            cat_fields.append(str(row.get(f"Category {i} Name", "")).lower())
+        row_subcats: list[str] = []
         for i in range(1, 9):
-            cat_fields.append(str(row.get(f"Sub-Category {i} Name", "")).lower())
+            val = str(row.get(f"Sub-Category {i} Name") or "").strip().lower()
+            if val:
+                row_subcats.append(val)
 
-        project_type_lower = str(row.get("Project Type", "")).lower()
-        cat_text = " ".join(cat_fields) + " " + project_type_lower
+        if not row_subcats:
+            return False
 
-        for keywords in self.category_keywords.values():
-            if any(kw in cat_text for kw in keywords):
-                return True
-        return False
+        return any(
+            sub.lower() in row_subcats
+            for sub in self.subcategory
+        )
 
-    def _matches_region(self, row: dict) -> bool:
-        if not self.allowed_regions:
+    def _matches_state(self, row: dict) -> bool:
+        if not self.project_state:
             return True
 
-        province = str(row.get("Project Province / State", "")).lower()
-        region = str(row.get("Project Region", "")).lower()
+        province = str(row.get("Project Province / State") or "").strip().lower()
+        if not province:
+            return False
 
-        for region_name in self.allowed_regions:
-            region_states = self.regions.get(region_name, [])
-            if any(state in province or state in region for state in region_states):
-                return True
-            if region_name.replace("_", " ") in region:
-                return True
-        return False
+        return any(
+            state.lower() == province
+            for state in self.project_state
+        )
 
-    def _matches_stage(self, row: dict) -> bool:
-        if not self.project_stage:
+    def _matches_status(self, row: dict) -> bool:
+        if not self.project_status:
             return True
 
-        project_status = str(row.get("Project Status", "")).lower()
-        project_stage = str(row.get("Project Stage", "")).lower()
-        combined = project_status + " " + project_stage
+        status = str(row.get("Project Status") or "").strip().lower()
+        if not status:
+            return False
 
-        return any(stage in combined for stage in self.project_stage)
+        return any(
+            s.lower() == status
+            for s in self.project_status
+        )
+
+    def _matches_development_type(self, row: dict) -> bool:
+        if not self.development_type:
+            return True
+
+        dev_type = str(row.get("Development Type") or "").strip().lower()
+        if not dev_type:
+            return False
+
+        return any(
+            dt.lower() == dev_type
+            for dt in self.development_type
+        )
 
     def _matches_dates(self, row: dict) -> bool:
-        if self.start_date_from:
-            start = _parse_quarter_date(
+        if self.start_date_min or self.start_date_max:
+            start_year = _parse_year(
                 row.get("Construction Start Date (Original format)")
             )
-            if start and start < datetime.strptime(self.start_date_from, "%Y-%m-%d"):
-                return False
+            if start_year is not None:
+                if self.start_date_min:
+                    min_year = int(self.start_date_min[:4])
+                    if start_year < min_year:
+                        return False
+                if self.start_date_max:
+                    max_year = int(self.start_date_max[:4])
+                    if start_year > max_year:
+                        return False
 
-        if self.end_date_to:
-            end = _parse_quarter_date(
+        if self.end_date_min:
+            end_year = _parse_year(
                 row.get("Construction End Date (Original format)")
             )
-            if end and end > datetime.strptime(self.end_date_to, "%Y-%m-%d"):
-                return False
+            if end_year is not None:
+                min_year = int(self.end_date_min[:4])
+                if end_year < min_year:
+                    return False
+
+        return True
+
+    def _matches_unit_minimums(self, row: dict) -> bool:
+        """
+        Check subcategory_min_units and development_type_min_units.
+        E.g. if subcategory_min_units = {"hotel": 100}, then for rows whose
+        sub-category includes "hotel", the Project Type must contain a hotel
+        entry with >= 100 units like 'HOTEL (329 rooms)'.
+        Similarly for development_type_min_units.
+        """
+        project_type = str(row.get("Project Type") or "").strip()
+
+        # Check subcategory_min_units
+        if self.subcategory_min_units:
+            row_subcats = set()
+            for i in range(1, 9):
+                val = str(row.get(f"Sub-Category {i} Name") or "").strip().lower()
+                if val:
+                    row_subcats.add(val)
+
+            for subcat, min_units in self.subcategory_min_units.items():
+                if subcat.lower() in row_subcats:
+                    units = _extract_units(project_type, subcat)
+                    if units is not None and units < min_units:
+                        return False
+
+        # Check development_type_min_units
+        if self.development_type_min_units:
+            dev_type = str(row.get("Development Type") or "").strip().lower()
+            for dt, min_units in self.development_type_min_units.items():
+                if dt.lower() == dev_type:
+                    # For development type, extract total units from Project Type
+                    total = _extract_total_units(project_type)
+                    if total is not None and total < min_units:
+                        return False
 
         return True
 
 
-def _parse_quarter_date(date_str: str | None) -> datetime | None:
+def _parse_year(date_str: str | None) -> int | None:
+    """Extract year from 'Quarter 4,2025' or 'January 2025'."""
     if not date_str or str(date_str).strip() == "":
         return None
     date_str = str(date_str).strip()
 
+    # Quarter format: "Quarter 4,2025"
     q_match = re.match(r"Quarter\s*(\d),?\s*(\d{4})", date_str)
     if q_match:
-        quarter = int(q_match.group(1))
-        year = int(q_match.group(2))
-        month = (quarter - 1) * 3 + 1
-        return datetime(year, month, 1)
+        return int(q_match.group(2))
 
-    try:
-        return datetime.strptime(date_str, "%B %Y")
-    except ValueError:
+    # Month Year format: "January 2025"
+    m_match = re.match(r"[A-Za-z]+\s+(\d{4})", date_str)
+    if m_match:
+        return int(m_match.group(1))
+
+    return None
+
+
+def _extract_units(project_type: str, keyword: str) -> int | None:
+    """
+    Extract unit count for a specific keyword from Project Type to check minimum unit requirement for subcategory.
+    E.g. 'HOTEL (329 rooms)' with keyword 'hotel' -> 329
+         'HOTEL (34 rooms) - extension - 7 storey' with keyword 'hotel' -> 34
+         'APARTMENT, CONDOMINIUM, TOWNHOUSE (500)' with keyword
+            'apartment, condominium, townhouse' -> 500
+    """
+    # Pattern: KEYWORD (NUMBER ...) — keyword can be multi-word
+    # Build a flexible pattern: keyword followed by (number ...)
+    escaped = re.escape(keyword)
+    pattern = rf"(?i){escaped}\s*\(\s*(\d[\d,]*)"
+    match = re.search(pattern, project_type)
+    if match:
+        return int(match.group(1).replace(",", ""))
+    return None
+
+
+def _extract_total_units(project_type: str) -> int | None:
+    """
+    Extract total units from all entries in Project Type to check minimum unit requirement for development type.
+    E.g. 'HOTEL (329 rooms) | SOHO (245) | OFFICES (223) - new - 55 storey'
+         -> 329 + 245 + 223 = 797
+    """
+    matches = re.findall(r"\(\s*(\d[\d,]*)\s*(?:rooms|units)?\s*\)", project_type, re.IGNORECASE)
+    if not matches:
         return None
+    total = sum(int(m.replace(",", "")) for m in matches)
+    return total if total > 0 else None

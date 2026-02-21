@@ -77,8 +77,8 @@ async def _call_llm(client, deployment: str, system_prompt: str, user_message: s
     return response.choices[0].message.content
 
 
-@blueprint.activity_trigger("process_single_lead")
-async def process_single_lead_activity(input_data: dict) -> dict:
+@blueprint.activity_trigger(input_name="input_data")
+async def process_single_lead(input_data: dict) -> dict:
     from openai import AsyncAzureOpenAI
     import os
 

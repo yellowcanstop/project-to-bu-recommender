@@ -51,4 +51,4 @@ BU_FILTERS = {
         "end_date_min": "2026-01-01",
         "min_value": 50_000_000
     }
-}, 
+}

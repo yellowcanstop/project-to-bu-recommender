@@ -8,8 +8,8 @@ from shared.identity import default_credential
 blueprint = df.Blueprint()
 
 
-@blueprint.activity_trigger("deduplicate")
-async def deduplicate_activity(input_data: dict) -> dict:
+@blueprint.activity_trigger(input_name="input_data")
+async def deduplicate(input_data: dict) -> dict:
     from azure.storage.blob.aio import BlobServiceClient
     from openai import AsyncAzureOpenAI
     import polars as pl
