@@ -1,0 +1,173 @@
+[
+    {
+        "Business Unit": "G-Cast",
+        "Product": "Rivo Arch Bridge System",
+        "Solution Package": "Infrastructure",
+        "Lifecycle Phase": "Design & Documentation",
+        "Application": "Bridge & Overpass",
+        "Keywords": "Arch bridge, modular, long-span, rapid installation",
+        "Target Sector": "Highway, Bridges, Railway, Civil Works"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "Eco-Module (Precast Reinforced Concrete U-Drains)",
+        "Solution Package": "Water Management",
+        "Lifecycle Phase": "Concept to Documentation",
+        "Application": "Stormwater Detention / Retention Tank",
+        "Keywords": "Urban drainage, storage tank, detention, flood mitigation",
+        "Target Sector": "Urban Development, Industrial, Flood and stormwater solution"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "Precast Concrete Sheet Piles",
+        "Solution Package": "Marine & Earth Retaining",
+        "Lifecycle Phase": "Design & Documentation",
+        "Application": "Coastal Protection / Retaining Walls",
+        "Keywords": "XS3 exposure class, tidal/splash/spray zones, high-strength concrete, replace traditional steel sheet piles retaining wall system",
+        "Target Sector": "Marine, Civil Engineering, Flood and stormwater solution"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "Precast Electrical Manhole / Substation Plinth",
+        "Solution Package": "Utility Infrastructure",
+        "Lifecycle Phase": "Pre-construction / Construction",
+        "Application": "Power Distribution",
+        "Keywords": "Compact substation, electrical housing, modular plinth",
+        "Target Sector": "Power Utilities, Residential"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "Box Culverts (with/without dry weather flow channel)",
+        "Solution Package": "Civil Works",
+        "Lifecycle Phase": "Design & Documentation",
+        "Application": "Drainage / Water Conveyance",
+        "Keywords": "Dry weather flow, reinforced concrete, heavy-duty",
+        "Target Sector": "Infrastructure, Municipal"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "Socket & Rebated Joint Pipes",
+        "Solution Package": "Water & Sewerage",
+        "Lifecycle Phase": "Design & Documentation",
+        "Application": "Sewage / Stormwater",
+        "Keywords": "Spigot and socket, flexible joint, settlement-resistant, high backfill",
+        "Target Sector": "Urban Infrastructure, Municipal"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "Jacking Pipes",
+        "Solution Package": "Trenchless Technology",
+        "Lifecycle Phase": "Design & Documentation",
+        "Application": "Underground Utilities",
+        "Keywords": "Non-disruptive, trenchless installation, micro-tunneling",
+        "Target Sector": "High-density Urban, Railway crossings"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "Road Kerbs & Caisson Rings",
+        "Solution Package": "Civil Works",
+        "Lifecycle Phase": "Construction",
+        "Application": "Road Furniture / Manholes",
+        "Keywords": "Standard kerb, chamber ring, site finishing",
+        "Target Sector": "Residential, Highway"
+    },
+    {
+        "Business Unit": "Kayangan Kemas",
+        "Product": "Design & Build / Turnkey Solutions",
+        "Solution Package": "Integrated Project Delivery",
+        "Lifecycle Phase": "Concept to Construction",
+        "Application": "Institutional & Healthcare Facilities",
+        "Keywords": "Design-Build, Public-Private Partnership (PPP), Hospital Specialist, Critical infrastructure upgrades for highways, General Contracting, Turnkey",
+        "Target Sector": "Healthcare (Hospitals), Government, Commercial, Infrastructure (Roads and Highways)"
+    },
+    {
+        "Business Unit": "Kayangan Kemas",
+        "Product": "General Building Construction",
+        "Solution Package": "General Contracting",
+        "Lifecycle Phase": "Pre-construction / Construction",
+        "Application": "Multi-sector Building Works",
+        "Keywords": "Design-Bid-Build, Structural Works, Architectural Finishes, Project Management",
+        "Target Sector": "Residential, Commercial, Government"
+    },
+    {
+        "Business Unit": "Makna Setia",
+        "Product": "Highway & Road Infrastructure",
+        "Solution Package": "Civil Engineering",
+        "Lifecycle Phase": "Construction / Pre-construction",
+        "Application": "Large-scale Transport Links",
+        "Keywords": "Highways, Elevated Bridges, Flyovers, Roadworks, Earthworks",
+        "Target Sector": "Infrastructure, Government, Transport"
+    },
+    {
+        "Business Unit": "Makna Setia",
+        "Product": "Railway Infrastructure",
+        "Solution Package": "Rail & Transit Systems",
+        "Lifecycle Phase": "Construction / Pre-construction",
+        "Application": "Critical Infrastructure for Railways",
+        "Keywords": "Railway Construction, Transit Systems, Rail Alignment, Casting Yard Services",
+        "Target Sector": "Infrastructure, Transport"
+    },
+    {
+        "Business Unit": "Makna Setia",
+        "Product": "Pre-cast & Heavy Equipment Services",
+        "Solution Package": "Structural Components",
+        "Lifecycle Phase": "Pre-construction / Construction",
+        "Application": "Specialized Civil Components",
+        "Keywords": "Own Casting Yards (Dengkil), Pre-cast Concrete, Heavy Machinery, Piling & Bridges",
+        "Target Sector": "Infrastructure, Industrial"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Precast Infrastructure (Culverts, Drains, Manholes)",
+        "Solution Package": "Civil & Drainage",
+        "Lifecycle Phase": "Design & Documentation / Construction",
+        "Application": "Stormwater management, Sewerage",
+        "Keywords": "Arch culvert, box culvert, U-drain, spigot and socket, jacking pipe",
+        "Target Sector": "Highway, Municipal, Civil Works"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Site Infrastructure & Logistics",
+        "Solution Package": "Site Setup & Utilities",
+        "Lifecycle Phase": "Pre-construction",
+        "Application": "Temporary Site Office / Power",
+        "Keywords": "Cabin, container, diesel, cables, waste bin",
+        "Target Sector": "All Construction Sites"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Site Safety & Traffic Management",
+        "Solution Package": "Public & Worker Protection",
+        "Lifecycle Phase": "Construction",
+        "Application": "Hazard mitigation, traffic flow",
+        "Keywords": "Barriers, delineator, safety nets, fire extinguisher, masking tape",
+        "Target Sector": "Infrastructure, Roadworks, High-rise"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Personal Protective Equipment (PPE)",
+        "Solution Package": "Health & Safety Compliance",
+        "Lifecycle Phase": "Construction",
+        "Application": "Worker Safety",
+        "Keywords": "Safety helmet, boots, gloves, face mask, face shield",
+        "Target Sector": "All Construction Sectors"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Site Maintenance & Maintenance (MRO)",
+        "Solution Package": "Site Care & Cleaning",
+        "Lifecycle Phase": "Construction / Post-occupancy",
+        "Application": "Maintenance & Hygiene",
+        "Keywords": "Anti-rust lubricants, cleaning products, sanitizing, fogging machine",
+        "Target Sector": "Facility Management, Site Ops"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Tools & Machinery",
+        "Solution Package": "Equipment Rental & Supply",
+        "Lifecycle Phase": "Construction",
+        "Application": "General Works",
+        "Keywords": "Hand tools, power tools, machinery, thermometer",
+        "Target Sector": "All Construction Sectors"
+    }
+]

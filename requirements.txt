@@ -60,6 +60,8 @@ distro==1.9.0
     # via openai
 dnspython==2.8.0
     # via azure-appconfiguration-provider
+et-xmlfile==2.0.0
+    # via openpyxl
 frozenlist==1.8.0
     # via
     #   aiohttp
@@ -95,10 +97,18 @@ multidict==6.7.1
     # via
     #   aiohttp
     #   yarl
+numpy==2.4.2
+    # via -r requirements.in
 openai==1.69.0
+    # via -r requirements.in
+openpyxl==3.1.5
     # via -r requirements.in
 orderedmultidict==1.0.2
     # via furl
+polars==1.38.1
+    # via -r requirements.in
+polars-runtime-32==1.38.1
+    # via polars
 propcache==0.4.1
     # via
     #   aiohttp

@@ -1,0 +1,182 @@
+[
+    {
+        "Business Unit": "Ajiya Metal",
+        "Product": "Steel Truss (ARI/ARIT)",
+        "Solution Package": "Structural Core",
+        "Lifecycle Phase": "Design & Documentation / Pre-Con",
+        "Application": "Roof Support / Framing",
+        "Keywords": "Lightweight high-tensile galvanised steel, Load-bearing, Zinc-coated, aluminium-coated, better than timber or mild steel trusses",
+        "Target Sector": "Industrial"
+    },
+    {
+        "Business Unit": "Ajiya Metal",
+        "Product": "Composite Floor Decking",
+        "Solution Package": "Structural Core",
+        "Lifecycle Phase": "Construction",
+        "Application": "Structural Flooring",
+        "Keywords": "Reinforcement, High-rise, metal floor decking, high tensile zinc-coated",
+        "Target Sector": "High-rise residential, commercial offices, industrial"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "Rivo Arch Bridge System",
+        "Solution Package": "Infrastructure",
+        "Lifecycle Phase": "Design & Documentation",
+        "Application": "Bridge & Overpass",
+        "Keywords": "Arch bridge, modular, long-span, rapid installation",
+        "Target Sector": "Highway, Bridges, Railway, Civil Works"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "Prestressed Concrete Beams & Cross Heads",
+        "Solution Package": "Infrastructure",
+        "Lifecycle Phase": "Construction",
+        "Application": "Bridge Support",
+        "Keywords": "Load-bearing, high-strength, prestressed, spans",
+        "Target Sector": "Highway, Bridges, Railway"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "IBS Building Components (Columns, Stairs, Slabs)",
+        "Solution Package": "Industrialized Building System (IBS)",
+        "Lifecycle Phase": "Concept to Documentation",
+        "Application": "Structural Frame",
+        "Keywords": "Modular, fast-track, cast-in-situ ground floor, ground beans, slabs, columns, staircases, other precast elements",
+        "Target Sector": "Residential buildings, commercial buildings, Standard JKR Buildings (Schools, Quarters, Colleges, Institutions etc.)"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "L-Shaped Wall",
+        "Solution Package": "Earth Retaining",
+        "Lifecycle Phase": "Construction",
+        "Application": "Retaining Structure",
+        "Keywords": "Earth pressure, boundary wall, gravity wall",
+        "Target Sector": "Residential, Industrial"
+    },
+    {
+        "Business Unit": "Chin Hin Concrete",
+        "Product": "Standard Ready-Mixed Concrete",
+        "Solution Package": "Structural Core",
+        "Lifecycle Phase": "Construction",
+        "Application": "General Structural Elements",
+        "Keywords": "Beams, columns, slabs, consistent quality",
+        "Target Sector": "Residential, Commercial, Industrial"
+    },
+    {
+        "Business Unit": "Chin Hin Concrete",
+        "Product": "Rapid Hardening Concrete",
+        "Solution Package": "Fast-track Construction",
+        "Lifecycle Phase": "Construction",
+        "Application": "Repair Works / Speed-build",
+        "Keywords": "High early strength, time-saving, rapid setting",
+        "Target Sector": "Infrastructure, Road repairs, Industrial"
+    },
+    {
+        "Business Unit": "Chin Hin Concrete",
+        "Product": "Fiber-reinforced Concrete",
+        "Solution Package": "High-Performance Structural",
+        "Lifecycle Phase": "Design & Documentation",
+        "Application": "Industrial Floors / Slabs",
+        "Keywords": "Crack control, impact resistance, shrinkage reduction, steel/poly fibers",
+        "Target Sector": "Factories, Warehouses, Hangars"
+    },
+    {
+        "Business Unit": "Chin Hin Concrete",
+        "Product": "Self-compacting Concrete",
+        "Solution Package": "Specialized Structural",
+        "Lifecycle Phase": "Construction",
+        "Application": "Congested Reinforcement",
+        "Keywords": "No vibration needed, high flowability, smooth finish",
+        "Target Sector": "High-rise, architectural concrete"
+    },
+    {
+        "Business Unit": "Chin Hin Concrete",
+        "Product": "Low Heat / Temp Control Concrete",
+        "Solution Package": "Mass Concrete",
+        "Lifecycle Phase": "Design & Documentation",
+        "Application": "Deep Foundations / Raft Slabs",
+        "Keywords": "Temperature monitoring, prevent thermal cracking, mass pour",
+        "Target Sector": "Critical Infrastructure, Skyscrapers"
+    },
+    {
+        "Business Unit": "Chin Hin Concrete",
+        "Product": "Roller-compacted Concrete",
+        "Solution Package": "Infrastructure",
+        "Lifecycle Phase": "Construction",
+        "Application": "Pavements / Dams",
+        "Keywords": "Zero-slump, heavy-duty load, rapid paving, dry-lean mix",
+        "Target Sector": "Highways, Logistics hubs, Dams"
+    },
+    {
+        "Business Unit": "Chin Hin Concrete",
+        "Product": "Fluid-fill Concrete",
+        "Solution Package": "Civil / Utilities",
+        "Lifecycle Phase": "Pre-con / Construction",
+        "Application": "Backfilling / Trenches",
+        "Keywords": "Flowable fill, self-leveling, non-structural support",
+        "Target Sector": "Utility works, pipe bedding"
+    },
+    {
+        "Business Unit": "Chin Hin Concrete",
+        "Product": "Pavement Quality Concrete",
+        "Solution Package": "Infrastructure",
+        "Lifecycle Phase": "Construction",
+        "Application": "High-traffic Roads",
+        "Keywords": "Flexural strength, durable surface, heavy-load bearing",
+        "Target Sector": "Highways, Airport runways"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Bulk Cement (OPC, PCC, Fly Ash, White)",
+        "Solution Package": "Structural Binders",
+        "Lifecycle Phase": "Construction",
+        "Application": "Concrete works, Masonry, Mortar",
+        "Keywords": "Portland cement, hydration, bonding, mass concrete, masonry",
+        "Target Sector": "Residential, Infrastructure, Industrial"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Foundation Piling (RC, Spun, Pre-stressed)",
+        "Solution Package": "Substructure Support",
+        "Lifecycle Phase": "Pre-construction / Construction",
+        "Application": "Deep Foundations",
+        "Keywords": "Load-bearing, spun pile, RC pile, structural stability",
+        "Target Sector": "High-rise, Bridges, Industrial"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Steel Reinforcement (Rebar, BRC Mesh, Wire)",
+        "Solution Package": "Structural Reinforcement",
+        "Lifecycle Phase": "Pre-construction / Construction",
+        "Application": "RC Frames / Slabs",
+        "Keywords": "High tensile, deformed bars, wire mesh, BRC, reinforcement",
+        "Target Sector": "All Construction Sectors"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Structural Steel Sections (I-Beam, Angle, Channel, Plate)",
+        "Solution Package": "Metal Framing",
+        "Lifecycle Phase": "Design & Documentation / Construction",
+        "Application": "Steel Portals / Frames",
+        "Keywords": "Universal beam, hollow section, MS plate, structural steel",
+        "Target Sector": "Industrial, Warehouses, Oil & Gas"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Bulk Earthworks & Aggregates",
+        "Solution Package": "Raw Material Supply",
+        "Lifecycle Phase": "Pre-con / Construction",
+        "Application": "Sub-base, Roadworks, Landscaping",
+        "Keywords": "Sand, quarry, crusher run, aggregates, filling",
+        "Target Sector": "Infrastructure, Civil Works"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Ground Engineering & Geosynthetics",
+        "Solution Package": "Soil Stabilization & Waterproofing",
+        "Lifecycle Phase": "Design & Documentation / Construction",
+        "Application": "Retaining walls, drainage, foundations",
+        "Keywords": "Geotextile, geosynthetic, geofoams, water stops, PE sheet",
+        "Target Sector": "Civil Engineering, Infrastructure"
+    }
+]

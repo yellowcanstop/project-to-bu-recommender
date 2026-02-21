@@ -1,0 +1,191 @@
+[
+  {
+    "Business Unit": "Synergy M5",
+    "Product": "ICT & Data Infrastructure",
+    "Solution Package": "Communication & Data",
+    "Lifecycle Phase": "Concept to Construction",
+    "Application": "Connectivity & Networking",
+    "Keywords": "Structured Cabling (SCS), Fiber-to-the-home (FTTH) solutions, internal and external telephone system, IP PBX Telephony, IPTV system",
+    "Target Sector": "Data Centers, Commercial, High-rise Residential, Defense, Hospitals"
+  },
+  {
+    "Business Unit": "Synergy M5",
+    "Product": "High Sensitivity Smoke Detection",
+    "Solution Package": "Communication & Data",
+    "Lifecycle Phase": "Design & Construction",
+    "Application": "Early Fire Warning",
+    "Keywords": "Aspirating smoke detection, HSSD, ultra-early warning",
+    "Target Sector": "Data Centers, Commercial, High-rise Residential, Defense, Hospitals"
+  },
+  {
+    "Business Unit": "Synergy M5",
+    "Product": "Access Control, Integrated Security Management System (ISMS), CCTV System",
+    "Solution Package": "Extra Low Voltage (ELV)",
+    "Lifecycle Phase": "Design & Construction",
+    "Application": "Facility Security",
+    "Keywords": "CCTV, Access Control, Intruder Alarm, ISMS",
+    "Target Sector": "Defense, Banks, Commercial Offices"
+  },
+  {
+    "Business Unit": "Synergy M5",
+    "Product": "Nurse Call & Panic Button",
+    "Solution Package": "Extra Low Voltage (ELV)",
+    "Lifecycle Phase": "Design & Construction",
+    "Application": "Safety & Alert Systems",
+    "Keywords": "Healthcare alerts, emergency signaling, nurse call station",
+    "Target Sector": "Hospitals, Aged Care, Natural Disaster Centers"
+  },
+  {
+    "Business Unit": "Synergy M5",
+    "Product": "Parking & Queue Management",
+    "Solution Package": "Extra Low Voltage (ELV)",
+    "Lifecycle Phase": "Design & Construction",
+    "Application": "Visitor Flow / Logistics",
+    "Keywords": "Park Guidance (PGS), Turnstiles, Speed Gates, Queue systems",
+    "Target Sector": "Shopping Malls, Transit Hubs, Retail"
+  },
+  {
+    "Business Unit": "Synergy M5",
+    "Product": "Public Address (P.A.) & Intercom",
+    "Solution Package": "Extra Low Voltage (ELV)",
+    "Lifecycle Phase": "Design & Construction",
+    "Application": "Life Safety & Comms",
+    "Keywords": "Fireman Intercom, 2-way comms, emergency broadcast",
+    "Target Sector": "High-rise, Schools, Public Infrastructure"
+  },
+  {
+    "Business Unit": "Synergy M5",
+    "Product": "Uninterrupted Power Supply (UPS) Systems",
+    "Solution Package": "Extra Low Voltage (ELV)",
+    "Lifecycle Phase": "Pre-con / Construction",
+    "Application": "Power Backup",
+    "Keywords": "Uninterrupted Power, voltage regulation, battery backup",
+    "Target Sector": "Data Centers, Hospitals, Defense"
+  },
+  {
+    "Business Unit": "Synergy M5",
+    "Product": "Stage Engineering, Curtain, Drapery, Rigging & Lighting",
+    "Solution Package": "Audio Visual (AV)",
+    "Lifecycle Phase": "Design & Documentation",
+    "Application": "Performance Venues",
+    "Keywords": "Rigging, drapery, stage curtains, dimming, theatrical lighting",
+    "Target Sector": "Convention Centers, Hotels, Schools"
+  },
+  {
+    "Business Unit": "Synergy M5",
+    "Product": "LED Display & Digital Signage",
+    "Solution Package": "Audio Visual (AV)",
+    "Lifecycle Phase": "Construction",
+    "Application": "Information / Marketing",
+    "Keywords": "Video walls, Interactive kiosks, Information display, wayfinding",
+    "Target Sector": "Shopping Malls, Airports, Showrooms"
+  },
+  {
+    "Business Unit": "Synergy M5",
+    "Product": "Audio & Video Conferencing",
+    "Solution Package": "Audio Visual (AV)",
+    "Lifecycle Phase": "Construction",
+    "Application": "Unified Communications",
+    "Keywords": "Smart meeting rooms, hybrid work, collaboration tools",
+    "Target Sector": "Corporate Offices, Universities"
+  },
+  {
+    "Business Unit": "Engenious",
+    "Product": "High & Low Voltage Electrical Installation",
+    "Solution Package": "Power Infrastructure",
+    "Lifecycle Phase": "Design & Documentation / Construction",
+    "Application": "Power Distribution & Grid Works",
+    "Keywords": "High Tension (HT) Switchgear, Transformers, Low Voltage Wiring, HT Cables Relocation, Street Lighting, Generator Set, Acoustic System",
+    "Target Sector": "Commercial, High-rise Residential, Infrastructure"
+  },
+  {
+    "Business Unit": "Engenious",
+    "Product": "Ventilation & Air-Conditioning (VAC) Systems",
+    "Solution Package": "Climate Control",
+    "Lifecycle Phase": "Design & Documentation / Construction",
+    "Application": "Thermal Comfort & Air Quality",
+    "Keywords": "Mechanical Ventilation, Chilled Water System, VRV System, Air Cooled Split Unit",
+    "Target Sector": "Commercial, Industrial, Residential"
+  },
+  {
+    "Business Unit": "Engenious",
+    "Product": "Fire Protection & Sanitary Systems",
+    "Solution Package": "Building Safety & Utilities",
+    "Lifecycle Phase": "Construction / Post-occupancy",
+    "Application": "Fire Suppression & Water Management",
+    "Keywords": "Sprinkler, Hose Reel, Hydrant, CO2 & Special Gas System, Fire Alarm, Cold Water, Sanitary System",
+    "Target Sector": "Commercial, Industrial, High-rise"
+  },
+  {
+    "Business Unit": "Engenious",
+    "Product": "Extra Low Voltage Security & Communication",
+    "Solution Package": "Extra Low Voltage (ELV)",
+    "Lifecycle Phase": "Design & Documentation / Construction",
+    "Application": "Facility Security & Broadcasting",
+    "Keywords": "Access Control, ISMS, CCTV, Public Address (PA), SMATV, Intrusion Detection, Carparking System",
+    "Target Sector": "Commercial, Hospitality, Residential"
+  },
+  {
+    "Business Unit": "Engenious",
+    "Product": "Specialized Hospitality & ICT Systems",
+    "Solution Package": "Smart Building Solutions",
+    "Lifecycle Phase": "Design & Documentation / Construction",
+    "Application": "Operational Efficiency & Connectivity",
+    "Keywords": "Nurse Call Intercom, Queue Management, Internal/External Telephone, Fiber To The Home (FTTH), GRMS",
+    "Target Sector": "Hospitals, Hotels, Aged Care, High-rise Residential"
+  },
+  {
+    "Business Unit": "Engenious",
+    "Product": "Total ICT Complete Solutions",
+    "Solution Package": "Managed Digital Infrastructure",
+    "Lifecycle Phase": "Concept to Post-occupancy",
+    "Application": "Data Center & Smart City Ops",
+    "Keywords": "UPS, DCIM, Managed WAN/LAN, IoT, Industry 4.0, Smart City, Solar Hybrid, Cloud, Data Center Migration",
+    "Target Sector": "Data Centers, Enterprise, Government, Industrial"
+  },
+  {
+    "Business Unit": "Engenious",
+    "Product": "Project Inspection, Factory Acceptance Test, & Maintenance",
+    "Solution Package": "Engineering Consultancy & O&M",
+    "Lifecycle Phase": "Construction / Post-occupancy",
+    "Application": "Asset Management & QA",
+    "Keywords": "Factory Acceptance Test (FAT), Testing & Commissioning, Power Transformer Maintenance, Project Inspection",
+    "Target Sector": "Industrial, Utilities, Infrastructure"
+  },
+  {
+    "Business Unit": "Signature International",
+    "Product": "Smart Home & Remote Surveillance",
+    "Solution Package": "IoT & Home Automation",
+    "Lifecycle Phase": "Design & Construction",
+    "Application": "Smart Living Ecosystems",
+    "Keywords": "Home Automation, Remote Monitoring, Security Sensors, Integrated Smart Home",
+    "Target Sector": "Residential, Small Office"
+  },
+  {
+    "Business Unit": "Vino",
+    "Product": "Residential, Commercial, and Industrial AC",
+    "Solution Package": "HVAC & Climate Control",
+    "Lifecycle Phase": "Concept to Construction",
+    "Application": "Building Temperature Control",
+    "Keywords": "HVAC, high-efficiency cooling, dehumidifier",
+    "Target Sector": "Residential, Light Commercial, Offices, shopping malls, hospitality"
+  },
+  {
+    "Business Unit": "Vino",
+    "Product": "BMS/EMS Controls, Inverter Drives, IoT Solutions",
+    "Solution Package": "Smart Building Intelligence",
+    "Lifecycle Phase": "Concept / Design & Documentation",
+    "Application": "Energy & System Management",
+    "Keywords": "BMS, EMS, IoT, energy-stored control, system integration, control solution for industry IOT/OTA",
+    "Target Sector": "Residential, Commercial, Smart buildings, data centers, green buildings"
+  },
+  {
+    "Business Unit": "Trading (PPCH)",
+    "Product": "Piping & Water Tanks (PVC, HDPE, DI, Stainless Steel)",
+    "Solution Package": "Fluid Management",
+    "Lifecycle Phase": "Design & Documentation / Construction",
+    "Application": "Water Supply / Drainage",
+    "Keywords": "Reticulation, rainwater harvesting, sectional tank, valve, solvent",
+    "Target Sector": "Municipal, Residential, Industrial"
+  }
+]

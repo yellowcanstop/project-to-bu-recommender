@@ -1,0 +1,128 @@
+[
+  {
+    "Business Unit": "Ajiya Metal",
+    "Product": "Metal Roofing",
+    "Solution Package": "Building Envelope",
+    "Lifecycle Phase": "Construction",
+    "Application": "Roofing & Insulation",
+    "Keywords": "Durable, cost-effective, lighter material than clay or concrete tiles",
+    "Target Sector": "Residential and commercial projects (bungalows, shop offices, hostels, condominiums, schools, government staff quarters, mosques)"
+  },
+  {
+    "Business Unit": "Ajiya Metal",
+    "Product": "Polyurethane (PU) Green Roofing",
+    "Solution Package": "Building Envelope",
+    "Lifecycle Phase": "Construction",
+    "Application": "Roofing & Insulation",
+    "Keywords": "Internal noise control, thermal comfort, low-emission",
+    "Target Sector": "Commercial and industrial projects such as factories, condominium, cabin, hoarding"
+  },
+  {
+    "Business Unit": "Ajiya Metal",
+    "Product": "Metal door and window frame",
+    "Solution Package": "Building Envelope / Interior",
+    "Lifecycle Phase": "Pre-con / Construction",
+    "Application": "Fenestration (Openings)",
+    "Keywords": "Lightweight, become integral part of wall, cost-saving, frames come with hinges, metal strikers plate and built-in architrave",
+    "Target Sector": "Mass residential"
+  },
+  {
+    "Business Unit": "Ajiya Metal",
+    "Product": "Aluminium Sunshade / Louvres",
+    "Solution Package": "Building Envelope",
+    "Lifecycle Phase": "Design & Documentation",
+    "Application": "Solar Shading / Façade",
+    "Keywords": "Aluminium, Lightweight, durable, contemporary airfoil louvres",
+    "Target Sector": "Commercial offices, modern high-rise"
+  },
+  {
+    "Business Unit": "Ajiya Metal",
+    "Product": "Z-shaped profile panel sunshade / louvres",
+    "Solution Package": "Building Envelope",
+    "Lifecycle Phase": "Design & Documentation",
+    "Application": "Solar Shading / Façade",
+    "Keywords": "Aluminium, prepainted steel, z-shaped",
+    "Target Sector": "Industrial"
+  },
+  {
+    "Business Unit": "Ajiya Glass",
+    "Product": "Heat treated glass (tempered)",
+    "Solution Package": "Safety & Security",
+    "Lifecycle Phase": "Design / Construction",
+    "Application": "Balustrades / Partitions",
+    "Keywords": "Tempered safety glass, break pattern, surface compression",
+    "Target Sector": "Residential, retail"
+  },
+  {
+    "Business Unit": "Ajiya Glass",
+    "Product": "Laminated Glass",
+    "Solution Package": "Safety & Security",
+    "Lifecycle Phase": "Design & Documentation",
+    "Application": "Soundproofing / Balustrades",
+    "Keywords": "Tough polyvinyl butyral (PVB) interlayer, protection when broken, plastic interlayer, design options",
+    "Target Sector": "Healthcare, hotels"
+  },
+  {
+    "Business Unit": "Ajiya Glass",
+    "Product": "Insulating Energy-saving Glass",
+    "Solution Package": "Energy Efficiency",
+    "Lifecycle Phase": "Design & Approval",
+    "Application": "External Glazing / HVAC optimization",
+    "Keywords": "Energy-saving, Multiple plies of glass, Desiccant-filled spacer, sealant, design options",
+    "Target Sector": "Commercial offices, green buildings (LEED/GBI)"
+  },
+  {
+    "Business Unit": "Ajiya Glass",
+    "Product": "Security Safety & Storm Protection Glass",
+    "Solution Package": "Specialized Protection",
+    "Lifecycle Phase": "Design & Approval",
+    "Application": "High-risk Facades",
+    "Keywords": "Blast resistant, ionoplast interlayer, multilaminated glazing, bullet resistant, hurricane resistant, intrusion resistant, forced entry",
+    "Target Sector": "Government, banks, critical infrastructure"
+  },
+  {
+    "Business Unit": "Ajiya Glass",
+    "Product": "ATTOCH (Energy-saving Renovation)",
+    "Solution Package": "Energy Retrofit",
+    "Lifecycle Phase": "Post-occupancy (existing)",
+    "Application": "On-site Glazing Upgrade",
+    "Keywords": "Energy-saving, Brownfield, Retrofit, No-disruption, renovation, insulated glazing, sound insulation",
+    "Target Sector": "Existing commercial offices, heritage buildings"
+  },
+  {
+    "Business Unit": "Trading (PPCH)",
+    "Product": "Roofing Systems (Tiles, Metal, Polycarbonate, FRP)",
+    "Solution Package": "Building Envelope",
+    "Lifecycle Phase": "Design & Documentation / Construction",
+    "Application": "External Roof Covering",
+    "Keywords": "Clay tiles, concrete tiles, zinc sheet, solar ready, skylight",
+    "Target Sector": "Residential, Commercial, Industrial"
+  },
+  {
+    "Business Unit": "Trading (PPCH)",
+    "Product": "Thermal & Acoustic Insulation (Foil, Rockwool, Glasswool)",
+    "Solution Package": "Building Science",
+    "Lifecycle Phase": "Design & Documentation",
+    "Application": "Roof & Wall Insulation",
+    "Keywords": "Radiant heat barrier, fiberglass, thermal comfort, rockwool",
+    "Target Sector": "Commercial, Industrial, Residential"
+  },
+  {
+    "Business Unit": "Trading (PPCH)",
+    "Product": "Doors, Windows & Ironmongery (Fire-rated, Timber, PVC)",
+    "Solution Package": "Openings & Security",
+    "Lifecycle Phase": "Construction",
+    "Application": "Fenestration / Access",
+    "Keywords": "Fire door, roller shutter, locksets, hinges, Naco louvres",
+    "Target Sector": "Residential, Government, Commercial"
+  },
+  {
+    "Business Unit": "Trading (PPCH)",
+    "Product": "Specialized Insulation & Fillers",
+    "Solution Package": "Thermal Protection / Void Filling",
+    "Lifecycle Phase": "Design & Documentation / Construction",
+    "Application": "Lightweight fill, cold rooms, glazing",
+    "Keywords": "EPS Polyfoam, XPS, glass, thermal barrier",
+    "Target Sector": "Commercial, Cold Storage, High-rise"
+  }
+]

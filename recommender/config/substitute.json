@@ -1,0 +1,58 @@
+{
+  "substitution_flags": [
+    {
+      "conflict": "Retaining walls",
+      "agent_a_product": "Agent 4: AAC Block boundary wall",
+      "agent_b_product": "Agent 6: G-Cast L-Shaped Wall / Precast Sheet Piles",
+      "resolution_logic": "Height & soil pressure determine winner. <2m = AAC. >2m = G-Cast. Marine = Sheet Piles."
+    },
+    {
+      "conflict": "Walling",
+      "agent_a_product": "Agent 4: Starken AAC Blocks",
+      "agent_b_product": "Agent 4 (via PPCH): Clay/Sand Bricks",
+      "resolution_logic": "Fire rating, weight, speed, cost. Fire-rated/fast-track = AAC. Budget traditional = clay brick."
+    },
+    {
+      "conflict": "Roofing",
+      "agent_a_product": "Agent 2: Ajiya Metal Roofing",
+      "agent_b_product": "Agent 2 (via PPCH): Clay/Concrete Tiles",
+      "resolution_logic": "Span, weight, aesthetics. Large industrial span = metal. Residential pitched roof = tiles. Green/thermal = PU Green Roofing."
+    },
+    {
+      "conflict": "ELV & Security",
+      "agent_a_product": "Agent 5: Synergy M5 CCTV/ISMS",
+      "agent_b_product": "Agent 5: Engenious ELV Security",
+      "resolution_logic": "Scope/geography. Synergy M5 = specialist deep ELV. Engenious = bundled with M&E package. Orchestrator should recommend the BU already contracted for other M&E scope."
+    },
+    {
+      "conflict": "HVAC",
+      "agent_a_product": "Agent 5: Vino HVAC",
+      "agent_b_product": "Agent 5: Engenious VAC",
+      "resolution_logic": "Same logic — bundle with existing M&E contractor. Vino = product supplier. Engenious = design-install contractor. Can be complementary (Vino supplies, Engenious installs)."
+    },
+    {
+      "conflict": "ICT",
+      "agent_a_product": "Agent 5: Synergy M5 ICT",
+      "agent_b_product": "Agent 5: Engenious Total ICT",
+      "resolution_logic": "Synergy M5 = specialist AV/ELV. Engenious = full managed infrastructure. Complex projects may need both."
+    },
+    {
+      "conflict": "Kitchen appliances",
+      "agent_a_product": "Agent 3: Elba (mid-range)",
+      "agent_b_product": "Agent 3: Faber (mass) / Rubine (premium)",
+      "resolution_logic": "Budget tier determines. Standard housing = Faber. Mid-range to premium = Elba. Premium / designer = Rubine. Orchestrator uses project tier signal."
+    },
+    {
+      "conflict": "Floor decking",
+      "agent_a_product": "Agent 1: Ajiya Metal Composite Deck",
+      "agent_b_product": "Agent 4: Starken AAC Floor Panel",
+      "resolution_logic": "High-rise steel frame = composite deck. Low-rise RC frame = AAC floor panel."
+    },
+    {
+      "conflict": "Drainage products",
+      "agent_a_product": "Agent 6: G-Cast Box Culverts/Pipes",
+      "agent_b_product": "Agent 6 (via PPCH): Precast Culverts/Drains",
+      "resolution_logic": "G-Cast = manufacturer. PPCH = trader/distributor. May be same physical product. Orchestrator prioritises G-Cast."
+    }
+  ]
+}

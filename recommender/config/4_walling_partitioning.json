@@ -1,0 +1,65 @@
+[
+    {
+        "Business Unit": "Starken AAC & AAC2",
+        "Product": "Standard AAC Block",
+        "Solution Package": "Walling System",
+        "Lifecycle Phase": "Design & Documentation",
+        "Application": "Internal, External, Party, Compartment, Separating, Acoustic, Fire-rated walls",
+        "Keywords": "Lightweight, fire-rated, acoustic insulation, thermal comfort, load-bearing",
+        "Target Sector": "Residential, Commercial, Hospitals, Factories, Schools, Hotels, Malls, Public Transport Intersection Building"
+    },
+    {
+        "Business Unit": "Starken AAC & AAC2",
+        "Product": "Jumbo Block",
+        "Solution Package": "Walling System (High Speed)",
+        "Lifecycle Phase": "Pre-con / Construction",
+        "Application": "Large-scale Partitioning",
+        "Keywords": "6x larger than standard blocks, fast-track, labour-saving, fire-rated, compartment walls",
+        "Target Sector": "Residential, Commercial, Hospitals, Factories, Schools, Hotels, Malls, Public Transport Intersection Building"
+    },
+    {
+        "Business Unit": "Starken AAC & AAC2",
+        "Product": "Interlocking Block",
+        "Solution Package": "Walling System",
+        "Lifecycle Phase": "Construction",
+        "Application": "Stable Wall Construction",
+        "Keywords": "Tongue & groove, easy alignment, stable wall, structural integrity",
+        "Target Sector": "Residential, Commercial, Hospitals, Factories, Schools, Hotels, Malls, Public Transport Intersection Building"
+    },
+    {
+        "Business Unit": "Starken AAC & AAC2",
+        "Product": "AAC Wall Panel",
+        "Solution Package": "Lightweight Facade / Partition",
+        "Lifecycle Phase": "Design & Documentation",
+        "Application": "Non-residential Walling",
+        "Keywords": "Reinforced, prefab, modular, steel/RC structure compatible",
+        "Target Sector": "Typically non-residential buildings such as Hospitals, Universities, schools, factories, warehouses, shopping malls. Can be for residential."
+    },
+    {
+        "Business Unit": "Starken AAC & AAC2",
+        "Product": "AAC Floor Panel",
+        "Solution Package": "Flooring System",
+        "Lifecycle Phase": "Design & Documentation",
+        "Application": "Floor Base / Decking",
+        "Keywords": "For floor base ready for rendering, lightweight floor, residential/non-residential",
+        "Target Sector": "Multi-storey Residential, Non-residential, Offices"
+    },
+    {
+        "Business Unit": "Starken AAC & AAC2",
+        "Product": "AAC Lintel",
+        "Solution Package": "Structural Support",
+        "Lifecycle Phase": "Pre-con / Construction",
+        "Application": "Openings (Doors/Windows)",
+        "Keywords": "Reinforced, load distribution, spreader under the end supports of reinforced concrete beams, support over windows or doorways or openings",
+        "Target Sector": "Residential, Commercial, Hospitals, Factories, Schools, Hotels, Malls, Public Transport Intersection Building"
+    },
+    {
+        "Business Unit": "Trading (PPCH)",
+        "Product": "Walling Materials (Clay, Sand, Glass Bricks, AAC)",
+        "Solution Package": "Walling System",
+        "Lifecycle Phase": "Construction",
+        "Application": "Internal/External Partitions",
+        "Keywords": "Common clay brick, facing bricks, glass blocks, lightweight",
+        "Target Sector": "Residential, Commercial "
+    }
+]

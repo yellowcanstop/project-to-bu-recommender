@@ -1,0 +1,144 @@
+{
+  "cross_references": [
+    {
+      "source_agent": "Agent 1 (Structural & Substructure)",
+      "target_agent": "Agent 2 (Envelope)",
+      "interaction_type": "Dependency",
+      "trigger_condition": "Structural frame type selected",
+      "detail": "Steel frame so favors lightweight metal roofing/cladding (Ajiya Metal). RC frame so supports heavier clay/concrete tile roofing (PPCH). Steel truss selection so triggers roof covering specification in Agent 2."
+    },
+    {
+      "source_agent": "Agent 1 (Structural & Substructure)",
+      "target_agent": "Agent 3 (Interior)",
+      "interaction_type": "Sequencing",
+      "trigger_condition": "Composite Floor Decking specified",
+      "detail": "Composite deck so triggers screeding/leveling (Starken Drymix) + flooring finish (PPCH/Signature ABA SPC) specification. Concrete slab pour so triggers skim coat / plaster spec."
+    },
+    {
+      "source_agent": "Agent 1 (Structural & Substructure)",
+      "target_agent": "Agent 4 (Walling)",
+      "interaction_type": "Co-specification",
+      "trigger_condition": "Structural frame designed",
+      "detail": "Frame type determines wall system: RC frame so infill AAC blocks (Starken). Steel frame so AAC panels or lightweight partitions. IBS columns/beams (G-Cast) so compatible AAC panel or block infill."
+    },
+    {
+      "source_agent": "Agent 1 (Structural & Substructure)",
+      "target_agent": "Agent 5 (MEP)",
+      "interaction_type": "Dependency",
+      "trigger_condition": "Foundation/slab design",
+      "detail": "Mass concrete pours (Chin Hin Low Heat) so requires embedded conduit coordination with Engenious electrical. Deep foundations so triggers underground utility routing with piping (PPCH). Slab type affects floor box / trunking layout."
+    },
+    {
+      "source_agent": "Agent 2 (Envelope)",
+      "target_agent": "Agent 1 (Structural)",
+      "interaction_type": "Load feedback",
+      "trigger_condition": "Heavy vs. lightweight envelope chosen",
+      "detail": "Concrete tile roofing (PPCH) so heavier truss / structural design vs. metal roofing (Ajiya Metal) so lighter steel truss (ARI/ARIT). Curtain wall glazing so requires steel/RC structural support brackets."
+    },
+    {
+      "source_agent": "Agent 2 (Envelope)",
+      "target_agent": "Agent 3 (Interior)",
+      "interaction_type": "Continuity",
+      "trigger_condition": "Door/window frames specified",
+      "detail": "Ajiya Metal door/window frames so triggers internal finishing (architraves, skim coat around openings)."
+    },
+    {
+      "source_agent": "Agent 2 (Envelope)",
+      "target_agent": "Agent 4 (Walling)",
+      "interaction_type": "Interface",
+      "trigger_condition": "External wall system chosen",
+      "detail": "AAC Wall Panel (Starken) serves as both wall AND envelope element shared jurisdiction. External plaster (Starken Drymix 1-coat/2-coat) applied to envelope walls. Envelope insulation (PPCH Rockwool/Glasswool) integrates into walling cavity."
+    },
+    {
+      "source_agent": "Agent 3 (Interior)",
+      "target_agent": "Agent 4 (Walling)",
+      "interaction_type": "Direct dependency",
+      "trigger_condition": "Wall construction selected",
+      "detail": "AAC block walls so REQUIRE AAC Thin Bed Adhesive + AAC Render OR Skim Coat (Starken). Brick walls (PPCH) so REQUIRE 3-coat plaster (Starken Drymix). RC walls so REQUIRE 2-coat skim coat (Starken Drymix). Wall type determines tile adhesive grade for wet areas."
+    },
+    {
+      "source_agent": "Agent 4 (Walling)",
+      "target_agent": "Agent 2 (Envelope)",
+      "interaction_type": "Shared scope",
+      "trigger_condition": "External wall = walling product",
+      "detail": "External render (Starken Drymix) applied to AAC = envelope finishing."
+    },
+    {
+      "source_agent": "Agent 4 (Walling)",
+      "target_agent": "Agent 3 (Interior)",
+      "interaction_type": "Mandatory trigger",
+      "trigger_condition": "Any wall type specified",
+      "detail": "Every wall selection triggers Agent 3. AAC so adhesive + render/skim coat. Brick so plaster + skim coat. All walls so paint, tiling, or other surface finish. Walling type determines waterproofing approach in wet areas (Starken Drymix Waterproofing Series)."
+    },
+    {
+      "source_agent": "Agent 4 (Walling)",
+      "target_agent": "Agent 5 (MEP)",
+      "interaction_type": "Coordination",
+      "trigger_condition": "Fire-rated / acoustic walls specified",
+      "detail": "Fire-rated AAC compartment walls so must maintain fire rating at service penetrations (Engenious fire protection). Acoustic walls so affects PA system design (Synergy M5). Wall thickness/material affects embedded conduit routing."
+    },
+    {
+      "source_agent": "Agent 4 (Walling)",
+      "target_agent": "Agent 6 (Civil Infra)",
+      "interaction_type": "Substitution",
+      "trigger_condition": "Retaining walls needed",
+      "detail": "G-Cast L-Shaped Wall competes with / complements AAC in earth-retaining applications. Orchestrator should flag this overlap."
+    },
+    {
+      "source_agent": "Agent 5 (MEP)",
+      "target_agent": "Agent 1 (Structural)",
+      "interaction_type": "Space & load",
+      "trigger_condition": "Heavy MEP plant specified",
+      "detail": "Transformer rooms, generator sets (Engenious) so structural slab/room design. Chiller plant (Vino/Engenious) so roof structural capacity for rooftop units. UPS rooms (Synergy M5) so floor loading for battery racks. Cable tray routing so structural penetration coordination."
+    },
+    {
+      "source_agent": "Agent 5 (MEP)",
+      "target_agent": "Agent 3 (Interior)",
+      "interaction_type": "Integration",
+      "trigger_condition": "ELV / AV systems specified",
+      "detail": "Synergy M5 LED displays so affect interior feature wall design (Space Alliance). Stage engineering / lighting (Synergy M5) so ceiling void and structural coordination. CCTV/access control (Synergy M5/Engenious) so door hardware coordination (PPCH ironmongery in Agent 2). AV conferencing so furniture/joinery layout (Signature/Space Alliance)."
+    },
+    {
+      "source_agent": "Agent 5 (MEP)",
+      "target_agent": "Agent 4 (Walling)",
+      "interaction_type": "Penetration mgmt",
+      "trigger_condition": "Services routed through walls",
+      "detail": "Fire-rated wall penetrations must be sealed to maintain compartmentation. Conduit/pipe sleeves through AAC walls require compatible sealing."
+    },
+    {
+      "source_agent": "Agent 5 (MEP)",
+      "target_agent": "Agent 6 (Civil Infra)",
+      "interaction_type": "Utility interface",
+      "trigger_condition": "External services designed",
+      "detail": "Electrical manholes (G-Cast Precast Manhole/Substation Plinth) house Engenious HT/LT switchgear. External piping (PPCH) connects to Engenious sanitary/fire systems. Jacking pipes (G-Cast) used for trenchless utility crossings designed by MEP engineers."
+    },
+    {
+      "source_agent": "Agent 6 (Civil Infra)",
+      "target_agent": "Agent 1 (Structural)",
+      "interaction_type": "Shared resources",
+      "trigger_condition": "Civil + building on same site",
+      "detail": "Same concrete supplier (Chin Hin) serves building + infrastructure. Same piling contractor (PPCH) serves foundations + bridge abutments. Aggregates/earthworks (PPCH) shared between building platform and road base. Makna Setia heavy equipment services can support building structural works."
+    },
+    {
+      "source_agent": "Agent 6 (Civil Infra)",
+      "target_agent": "Agent 4 (Walling)",
+      "interaction_type": "Substitution flag",
+      "trigger_condition": "Retaining walls in scope",
+      "detail": "G-Cast L-Shaped Wall vs. Precast Sheet Piles vs. AAC orchestrator should present alternatives based on application (earth retaining vs. marine vs. boundary)."
+    },
+    {
+      "source_agent": "Agent 6 (Civil Infra)",
+      "target_agent": "Agent 5 (MEP)",
+      "interaction_type": "Infrastructure handoff",
+      "trigger_condition": "External utilities designed",
+      "detail": "G-Cast electrical manholes/substation plinths so Engenious HT cable routing. G-Cast socket/rebated pipes + PPCH piping so Engenious water/sanitary systems. Site infrastructure (PPCH cabin, diesel, cables) supports MEP temporary power during construction."
+    },
+    {
+      "source_agent": "Agent 6 (Civil Infra)",
+      "target_agent": "Agent 1 (back-loop)",
+      "interaction_type": "Sequencing",
+      "trigger_condition": "Phase progression",
+      "detail": "Civil works (Makna Setia earthworks, G-Cast drainage) precede structural works. Orchestrator should sequence Agent 6 recommendations BEFORE Agent 1 in early phases."
+    }
+  ]
+}

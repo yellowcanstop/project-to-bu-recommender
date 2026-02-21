@@ -15,3 +15,6 @@ azure-storage-blob~=12.25.1
 azure-identity~=1.25.1
 azure-appconfiguration~=1.7.1
 azure-appconfiguration-provider~=2.1.0
+polars
+numpy
+openpyxl
