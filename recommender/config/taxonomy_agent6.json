@@ -169,5 +169,14 @@
         "Application": "General Works",
         "Keywords": "Hand tools, power tools, machinery, thermometer",
         "Target Sector": "All Construction Sectors"
+    },
+    {
+        "Business Unit": "G-Cast",
+        "Product": "IBS Building Components (Columns, Stairs, Slabs)",
+        "Solution Package": "Industrialized Building System (IBS)",
+        "Lifecycle Phase": "Concept to Documentation",
+        "Application": "Structural Frame",
+        "Keywords": "Modular, fast-track, cast-in-situ ground floor, ground beans, slabs, columns, staircases, other precast elements",
+        "Target Sector": "Residential buildings, commercial buildings, Standard JKR Buildings (Schools, Quarters, Colleges, Institutions etc.)"
     }
 ]

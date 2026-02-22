@@ -74,10 +74,8 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     # Fan out: process each project lead in parallel
     parallel_tasks = []
-    # TODO test only one
-    test = filtered_leads[0] if len(filtered_leads) > 1 else None
-    for lead in test:
-    #for lead in filtered_leads:
+
+    for lead in filtered_leads:
         task = context.call_activity("process_single_lead", {
             "lead": lead,
             "bu_assignments": bu_assignments,
@@ -85,7 +83,10 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         parallel_tasks.append(task)
 
     all_results = yield context.task_all(parallel_tasks)
+    
+    print(f">>> Completed processing all leads. Total results: {len(all_results)}")
 
+    '''
     # ──────────────────────────────────────────────
     # PHASE 7: Store final results
     # ──────────────────────────────────────────────
@@ -93,6 +94,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         "recommendations": all_results,
         "bu_assignments": bu_assignments,
     })
+    '''
 
     return {"status": "complete", "leads_processed": len(filtered_leads)}
     

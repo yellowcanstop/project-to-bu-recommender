@@ -109,11 +109,6 @@ async def process_single_lead(input_data: dict) -> dict:
 
     lead_context = _build_lead_context(lead)
 
-    # ─── STEP 1: Signal Extraction ───
-    signal_prompt = _load_prompt("signal_extractor.txt")
-    extracted_signals = await _call_llm(client, deployment, signal_prompt, lead_context)
-
-    # ─── STEP 2: Run 6 Domain Agents in Parallel ───
     domain_agent_prompt_template = _load_prompt("domain_agent.txt")
     taxonomies = {
         f"agent_{i}": _load_json(f"taxonomy_agent{i}.json")
@@ -137,25 +132,24 @@ async def process_single_lead(input_data: dict) -> dict:
         )
         user_msg = (
             f"Project Lead:\n{lead_context}\n\n"
-            f"Extracted Signals:\n{extracted_signals}"
         )
         result = await _call_llm(client, deployment, system_prompt, user_msg)
         try:
+            print(f">>> {agent_key} raw result: {result}, recommendations: {json.loads(result)}")
             return {"agent": agent_key, "recommendations": json.loads(result)}
         except json.JSONDecodeError:
+            print(f">>> {agent_key} returned invalid JSON. Raw output: {result}")
             return {"agent": agent_key, "recommendations": [], "raw": result}
 
     agent_tasks = [run_domain_agent(key) for key in taxonomies.keys()]
     agent_results = await asyncio.gather(*agent_tasks)
 
-    # ─── STEP 3: Synthesis ───
     cross_ref = _load_json("cross_reference_matrix.json")
     substitutions = _load_json("substitution_flags.json")
     synthesizer_prompt = _load_prompt("synthesizer.txt")
 
     synthesis_input = json.dumps({
         "project_lead": json.loads(lead_context),
-        "extracted_signals": json.loads(extracted_signals),
         "agent_recommendations": {r["agent"]: r["recommendations"] for r in agent_results},
         "cross_reference_matrix": cross_ref,
         "substitution_flags": substitutions,
@@ -171,6 +165,8 @@ async def process_single_lead(input_data: dict) -> dict:
         parsed_result = json.loads(final_result)
     except json.JSONDecodeError:
         parsed_result = {"raw_output": final_result}
+
+    print(f">>> Final synthesized result for project {lead.get('Project ID')}: {parsed_result}")
 
     return {
         "project_id": lead.get("Project ID"),

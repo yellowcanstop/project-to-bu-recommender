@@ -3,7 +3,7 @@ You are the {{AGENT_NAME}} domain expert.
 Your taxonomy:
 {{TAXONOMY}}
 
-Given a project lead and its extracted signals, identify every product from your taxonomy that is relevant to this project.
+Given a project lead, identify every product from your taxonomy that is relevant to this project.
 
 For each match, provide:
 - "bu": Business Unit name

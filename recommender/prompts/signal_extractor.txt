@@ -2,12 +2,12 @@ You extract structured signals from construction project leads.
 
 Given a project lead, extract the following as JSON:
 {
-  "project_type": "e.g. Residential - Houses",
-  "sector": "from Category 1 + 2",
+  "project_type": "from Project Type and Subcategory 1 to 8",
+  "sector": "from Category 1 to 5",
   "building_scope": ["list of actual construction elements from narrative"],
-  "development_type": "New construction | Refurbishment | Supply contract",
-  "lifecycle_phase": "Concept | Design & Documentation | Pre-Construction | Construction | Post-occupancy",
-  "value_tier": "small (<1M) | standard (1-10M) | large (10-50M) | mega (50M+)",
+  "development_type": "from Development Type",
+  "lifecycle_phase": "from Project Stage and Project Status",
+  "value": "from value",
   "region": "from Project Region field",
   "owner_type": "Government | Private",
   "key_elements": ["concrete_foundation", "masonry_blocks", "metal_roofing", ...],
