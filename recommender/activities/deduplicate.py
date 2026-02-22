@@ -28,6 +28,39 @@ async def deduplicate(input_data: dict) -> dict:
         content = await download.readall()
 
     non_bci_df = pl.read_excel(io.BytesIO(content))
+
+    # If 'GSM Project ID' isn't in the headers, search all rows/columns to find the true header row
+    if "GSM Project ID" not in non_bci_df.columns:
+        header_idx = None
+        
+        # iter_rows() yields tuples of the row values
+        for i, row_tuple in enumerate(non_bci_df.iter_rows()):
+            # Check if 'GSM Project ID' is in any cell of this row
+            if any(str(val).strip() == "GSM Project ID" for val in row_tuple if val is not None):
+                header_idx = i
+                break
+                
+        if header_idx is not None:
+            # Extract that row to use as headers, stripping trailing spaces
+            real_headers = [str(val).strip() if val is not None else f"unnamed_{j}" for j, val in enumerate(non_bci_df.row(header_idx))]
+            
+            # Polars requires unique column names. Ensure no duplicates just in case.
+            seen = set()
+            unique_headers = []
+            for h in real_headers:
+                new_h = h
+                count = 1
+                while new_h in seen:
+                    new_h = f"{h}_{count}"
+                    count += 1
+                seen.add(new_h)
+                unique_headers.append(new_h)
+
+            non_bci_df = non_bci_df.rename(dict(zip(non_bci_df.columns, unique_headers)))
+            
+            # Slice the dataframe to keep only the data rows below the header
+            non_bci_df = non_bci_df[header_idx + 1:]
+
     non_bci_rows = non_bci_df.to_dicts()
 
     # Build embedding texts

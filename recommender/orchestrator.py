@@ -26,7 +26,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     # PHASE 1: Download BCI + filter per BU
     # ──────────────────────────────────────────────
-    # Returns: {"makna_setia": [id1, id2], "ajiya_metal": [id3, id4], ...}
+    # Returns: {"makna_setia": [id1, id2], "ppch": [id3, id4], ...}
     # Plus the full filtered dataframe as serialized JSON rows
     print(">>> Orchestrator started, calling filter_bci...")
 
@@ -36,9 +36,8 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
 
     print(f">>> Filtered BCI leads count: {len(filtered_leads)}")
     print(f">>> BU Assignments: {bu_assignments}")
-
-    return {"status": "complete", "filtered_leads": filtered_leads, "bu_assignments": bu_assignments}
-
+    
+    return None
     '''
     # ──────────────────────────────────────────────
     # PHASE 2+3: Download Non-BCI + Deduplication
@@ -48,6 +47,12 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     })
     duplicate_candidates = dedup_result["duplicates"]  # list of {bci_id, non_bci_id, similarity, details}
 
+    print(f">>> Found {len(duplicate_candidates)} duplicate candidates between BCI and Non-BCI leads.")
+    print(f">>> Duplicate candidates: {duplicate_candidates}")
+
+    return {"status": "complete", "duplicate_candidates": duplicate_candidates}
+'''
+    '''
     # ──────────────────────────────────────────────
     # PHASE 4: Human approval (wait for external event)
     # ──────────────────────────────────────────────

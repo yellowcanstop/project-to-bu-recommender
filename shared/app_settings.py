@@ -13,6 +13,10 @@ otel_exporter_otlp_endpoint = config.get_value(
 azure_openai_endpoint = config.get_value("AZURE_OPENAI_ENDPOINT", None)
 azure_openai_chat_deployment = config.get_value(
     "AZURE_OPENAI_CHAT_DEPLOYMENT", None)
+azure_openai_embedding_endpoint = config.get_value(
+    "AZURE_OPENAI_EMBEDDING_ENDPOINT", None)
+azure_openai_embedding_deployment = config.get_value(
+    "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", None)
 azure_client_id = config.get_value("AZURE_CLIENT_ID", None)
 azure_storage_account = config.get_value(
     "AZURE_STORAGE_ACCOUNT", None)

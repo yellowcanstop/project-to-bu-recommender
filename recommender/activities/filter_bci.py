@@ -94,17 +94,34 @@ async def filter_bci(input_data: dict) -> dict:
     # Strip whitespace from existing column names just in case it read correctly
     df = df.rename({c: str(c).strip() for c in df.columns})
 
-    # If 'Project ID' isn't in the headers, search down the first column to find the true header row
+    # If 'Project ID' isn't in the headers, search all rows/columns to find the true header row
     if "Project ID" not in df.columns:
-        first_col_values = df[df.columns[0]].to_list()
+        header_idx = None
         
-        # Find the index of the row where the first column is 'Project ID'
-        header_idx = next((i for i, v in enumerate(first_col_values) if str(v).strip() == "Project ID"), None)
+        # iter_rows() yields tuples of the row values
+        for i, row_tuple in enumerate(df.iter_rows()):
+            # Check if 'Project ID' is in any cell of this row
+            if any(str(val).strip() == "Project ID" for val in row_tuple if val is not None):
+                header_idx = i
+                break
         
         if header_idx is not None:
             # Extract that row to use as headers, stripping trailing spaces
-            real_headers = [str(val).strip() if val is not None else f"unnamed_{i}" for i, val in enumerate(df.row(header_idx))]
-            df = df.rename(dict(zip(df.columns, real_headers)))
+            real_headers = [str(val).strip() if val is not None else f"unnamed_{j}" for j, val in enumerate(df.row(header_idx))]
+            
+            # Polars requires unique column names. Ensure no duplicates just in case.
+            seen = set()
+            unique_headers = []
+            for h in real_headers:
+                new_h = h
+                count = 1
+                while new_h in seen:
+                    new_h = f"{h}_{count}"
+                    count += 1
+                seen.add(new_h)
+                unique_headers.append(new_h)
+
+            df = df.rename(dict(zip(df.columns, unique_headers)))
             
             # Slice the dataframe to keep only the data rows below the header
             df = df[header_idx + 1:]
