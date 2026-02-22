@@ -89,6 +89,26 @@ async def filter_bci(input_data: dict) -> dict:
         content = await download.readall()
 
     df = pl.read_excel(io.BytesIO(content))
+
+    # The excel file may have multiple header rows or leading metadata before actual header we want (which contains "Project ID").
+    # Strip whitespace from existing column names just in case it read correctly
+    df = df.rename({c: str(c).strip() for c in df.columns})
+
+    # If 'Project ID' isn't in the headers, search down the first column to find the true header row
+    if "Project ID" not in df.columns:
+        first_col_values = df[df.columns[0]].to_list()
+        
+        # Find the index of the row where the first column is 'Project ID'
+        header_idx = next((i for i, v in enumerate(first_col_values) if str(v).strip() == "Project ID"), None)
+        
+        if header_idx is not None:
+            # Extract that row to use as headers, stripping trailing spaces
+            real_headers = [str(val).strip() if val is not None else f"unnamed_{i}" for i, val in enumerate(df.row(header_idx))]
+            df = df.rename(dict(zip(df.columns, real_headers)))
+            
+            # Slice the dataframe to keep only the data rows below the header
+            df = df[header_idx + 1:]
+
     available_columns = [c for c in COLUMNS_TO_LOAD if c in df.columns]
     df = df.select(available_columns)
     rows = df.to_dicts()

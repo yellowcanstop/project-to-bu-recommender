@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 import re
+from thefuzz import fuzz
 
 
 @dataclass
@@ -15,6 +16,10 @@ class BUFilter:
     min_value: float = 0.0
     subcategory_min_units: dict[str, int] = field(default_factory=dict)
     development_type_min_units: dict[str, int] = field(default_factory=dict)
+
+    def __is_fuzzy_match__(self, a: str, b: str, threshold: int = 90) -> bool:
+        """Checks if two strings are a fuzzy match above the given threshold."""
+        return fuzz.partial_ratio(a.strip().lower(), b.strip().lower()) > threshold
 
     def matches(self, row: dict) -> bool:
         if not self._matches_value(row):
@@ -55,8 +60,9 @@ class BUFilter:
             return False
 
         return any(
-            sub.lower() in row_subcats
+            self.__is_fuzzy_match__(sub, row_subcat)
             for sub in self.subcategory
+            for row_subcat in row_subcats
         )
 
     def _matches_state(self, row: dict) -> bool:
@@ -68,7 +74,7 @@ class BUFilter:
             return False
 
         return any(
-            state.lower() == province
+            self.__is_fuzzy_match__(state, province)
             for state in self.project_state
         )
 
@@ -81,7 +87,7 @@ class BUFilter:
             return False
 
         return any(
-            s.lower() == status
+            self.__is_fuzzy_match__(s, status)
             for s in self.project_status
         )
 
@@ -94,7 +100,7 @@ class BUFilter:
             return False
 
         return any(
-            dt.lower() == dev_type
+            self.__is_fuzzy_match__(dt, dev_type)
             for dt in self.development_type
         )
 
@@ -143,7 +149,7 @@ class BUFilter:
                     row_subcats.add(val)
 
             for subcat, min_units in self.subcategory_min_units.items():
-                if subcat.lower() in row_subcats:
+                if any(self.__is_fuzzy_match__(subcat, row_subcat) for row_subcat in row_subcats):
                     units = _extract_units(project_type, subcat)
                     if units is not None and units < min_units:
                         return False
@@ -152,7 +158,7 @@ class BUFilter:
         if self.development_type_min_units:
             dev_type = str(row.get("Development Type") or "").strip().lower()
             for dt, min_units in self.development_type_min_units.items():
-                if dt.lower() == dev_type:
+                if self.__is_fuzzy_match__(dt, dev_type):
                     # For development type, extract total units from Project Type
                     total = _extract_total_units(project_type)
                     if total is not None and total < min_units:
@@ -162,7 +168,7 @@ class BUFilter:
 
 
 def _parse_year(date_str: str | None) -> int | None:
-    """Extract year from 'Quarter 4,2025' or 'January 2025'."""
+    """Extract year from 'Quarter 4,2025' or 'January 2025' or '10 January 2025'."""
     if not date_str or str(date_str).strip() == "":
         return None
     date_str = str(date_str).strip()
@@ -176,6 +182,11 @@ def _parse_year(date_str: str | None) -> int | None:
     m_match = re.match(r"[A-Za-z]+\s+(\d{4})", date_str)
     if m_match:
         return int(m_match.group(1))
+
+    # Day Month Year format: "10 January 2025"
+    d_match = re.match(r"\d+\s+[A-Za-z]+\s+(\d{4})", date_str)
+    if d_match:
+        return int(d_match.group(1))
 
     return None
 
