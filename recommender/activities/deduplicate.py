@@ -77,19 +77,20 @@ async def deduplicate(input_data: dict) -> dict:
 
     non_bci_rows = non_bci_df.to_dicts()
     print(f"Non-BCI rows count: {len(non_bci_rows)}")
-    return None
+    print(f"Non-BCI: {non_bci_rows}")
     
-    '''
+    
     # Build embedding texts
-    # BCI: address + project type + province
     bci_texts = []
     for lead in filtered_bci_leads:
         text = " | ".join(filter(None, [
             str(lead.get("Project Address", "")),
+            str(lead.get("Project Name", "")),
             str(lead.get("Project Type", "")),
-            str(lead.get("Project Province / State", "")),
         ]))
         bci_texts.append(text)
+
+    print(f"BCI: {bci_texts}")
 
     # Non-BCI: project name + province (limited fields available)
     non_bci_texts = []
@@ -113,7 +114,7 @@ async def deduplicate(input_data: dict) -> dict:
     # Batch embed (API limit ~2048 per call)
     async def get_embeddings(texts: list[str]) -> list[list[float]]:
         all_embeddings = []
-        batch_size = 100
+        batch_size = 500
         for i in range(0, len(texts), batch_size):
             batch = texts[i:i + batch_size]
             response = await client.embeddings.create(model=embedding_model, input=batch)
@@ -135,11 +136,18 @@ async def deduplicate(input_data: dict) -> dict:
     similarity = non_bci_norm @ bci_norm.T
 
     # Find duplicates above threshold
-    threshold = 0.85
+    threshold = 0.8 # cross-lingual embeddings score lower (malay-english)
     duplicates = []
     for non_bci_idx in range(len(non_bci_rows)):
         for bci_idx in range(len(filtered_bci_leads)):
             score = float(similarity[non_bci_idx, bci_idx])
+
+            if filtered_bci_leads[bci_idx].get("Project ID") == "129285003" and non_bci_rows[non_bci_idx].get("GSM Project ID") == "129285003":
+                print(f"DEBUG: Similarity is {score}")
+
+            if filtered_bci_leads[bci_idx].get("Project ID") == "90897003" and non_bci_rows[non_bci_idx].get("GSM Project ID") == "90897003":
+                print(f"DEBUG: Similarity is {score}")
+
             if score >= threshold:
                 duplicates.append({
                     "non_bci_id": str(non_bci_rows[non_bci_idx].get("GSM Project ID", "")),
@@ -148,6 +156,7 @@ async def deduplicate(input_data: dict) -> dict:
                     "bci_id": str(filtered_bci_leads[bci_idx].get("Project ID", "")),
                     "bci_project": str(filtered_bci_leads[bci_idx].get("Project Name", "")),
                     "bci_address": str(filtered_bci_leads[bci_idx].get("Project Address", "")),
+                    "bci_type": str(filtered_bci_leads[bci_idx].get("Project Type", "")),
                     "similarity": round(score, 4),
                 })
 
@@ -159,4 +168,4 @@ async def deduplicate(input_data: dict) -> dict:
         "total_non_bci": len(non_bci_rows),
         "total_duplicates_found": len(duplicates),
     }
-    '''
+    

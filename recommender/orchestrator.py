@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 Orchestrates:
 Activity 1: Download & Filter BCI (per BU)
 Activity 2: Download Non-BCI
-Activity 3: Deduplication (embeddings + AI Search)
+Activity 3: Deduplication (embeddings)
 Activity 4: Human Approval of Duplicates (wait for external event)
 Activity 5: Extract Signals (LLM per project lead)
 Activity 6: Domain Agents + Synthesizer (per project lead)
@@ -35,7 +35,8 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     bu_assignments = filter_result["bu_assignments"]  # {bu_name: [project_ids]}
 
     print(f">>> Filtered BCI leads count: {len(filtered_leads)}")
-
+    print(f">>> BU assignments: {bu_assignments}")
+    
     # ──────────────────────────────────────────────
     # PHASE 2+3: Download Non-BCI + Deduplication
     # ──────────────────────────────────────────────
