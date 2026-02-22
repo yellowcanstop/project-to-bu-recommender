@@ -1,9 +1,9 @@
 import azure.durable_functions as df
 import polars as pl
 import io
-import re
 
 from shared.identity import default_credential
+from shared import app_settings
 from recommender.config.bu_filters import BU_FILTERS
 from recommender.models.bu_filter import BUFilter
 
@@ -63,23 +63,16 @@ def _build_bu_filter(name: str, config: dict) -> BUFilter:
 @blueprint.activity_trigger(input_name="input_data")
 async def filter_bci(input_data: dict) -> dict:
     from azure.storage.blob.aio import BlobServiceClient
-    import os
+   
+    # Get connection string or URL from input, fallback to app_settings
+    blob_url = input_data.get("blob_account_url") or app_settings.blob_account_url
+    container = input_data.get("container") or app_settings.blob_container
+    bci_blob_name = input_data.get("bci_blob_name") or app_settings.bci_blob_name
 
-    # Get connection string or URL from input, fallback to local settings
-    conn_str = input_data.get("blob_account_url") or os.environ.get("AzureWebJobsStorage", "UseDevelopmentStorage=true")
-    container = input_data.get("container", "project-leads")
-    bci_blob_name = input_data.get("bci_blob_name", "bci_leads.xlsx")
-
-    # If it's the local emulator shorthand, use the full explicit Azurite connection string
-    if conn_str == "UseDevelopmentStorage=true":
-        conn_str = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;"
-
-    # If it contains '=', it's a connection string
-    if "=" in conn_str:
-        blob_service = BlobServiceClient.from_connection_string(conn_str)
+    if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
+        blob_service = BlobServiceClient.from_connection_string(blob_url)
     else:
-        # Otherwise, it's a Managed Identity URL (Production)
-        blob_service = BlobServiceClient(conn_str, credential=default_credential())
+        blob_service = BlobServiceClient(blob_url, credential=default_credential)
 
 
     # Download BCI Excel from blob

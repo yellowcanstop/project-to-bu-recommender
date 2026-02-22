@@ -23,24 +23,7 @@ azure_storage_account = config.get_value(
 azure_storage_queues_connection_string = config.get_value(
     "AZURE_STORAGE_QUEUES_CONNECTION_STRING", None)
 
-'''
-import os
-
-
-def get_setting(key: str, default: str = "") -> str:
-    return os.environ.get(key, default)
-
-
-# Blob storage
-BLOB_ACCOUNT_URL = get_setting("BLOB_ACCOUNT_URL")
-BLOB_CONTAINER = get_setting("BLOB_CONTAINER", "project-leads")
-BCI_BLOB_NAME = get_setting("BCI_BLOB_NAME", "bci_leads.xlsx")
-NON_BCI_BLOB_NAME = get_setting("NON_BCI_BLOB_NAME", "non_bci_leads.xlsx")
-
-# Azure OpenAI
-AZURE_OPENAI_ENDPOINT = get_setting("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_CHAT_DEPLOYMENT = get_setting("AZURE_OPENAI_DEPLOYMENT", "gpt-4o")
-AZURE_OPENAI_EMBEDDING_DEPLOYMENT = get_setting(
-    "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-small"
-)
-'''
+blob_account_url = config.get_value("BLOB_ACCOUNT_URL", None)
+blob_container = config.get_value("BLOB_CONTAINER", "project-leads")
+bci_blob_name = config.get_value("BCI_BLOB_NAME", "bci_leads.xlsx")
+non_bci_blob_name = config.get_value("NON_BCI_BLOB_NAME", "non_bci_leads.xlsx")

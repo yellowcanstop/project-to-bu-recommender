@@ -35,8 +35,6 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     bu_assignments = filter_result["bu_assignments"]  # {bu_name: [project_ids]}
 
     print(f">>> Filtered BCI leads count: {len(filtered_leads)}")
-    print(f">>> BU Assignments: {bu_assignments}")
-    
 
     # ──────────────────────────────────────────────
     # PHASE 2+3: Download Non-BCI + Deduplication

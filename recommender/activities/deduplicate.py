@@ -1,9 +1,9 @@
 import azure.durable_functions as df
-import json
-import os
+import shared.identity as identity
 import io
 
 from shared.identity import default_credential
+from shared import app_settings
 
 blueprint = df.Blueprint()
 
@@ -11,6 +11,7 @@ blueprint = df.Blueprint()
 @blueprint.activity_trigger(input_name="input_data")
 async def deduplicate(input_data: dict) -> dict:
     from azure.storage.blob.aio import BlobServiceClient
+    from azure.identity import get_bearer_token_provider
     from openai import AsyncAzureOpenAI
     import polars as pl
     import numpy as np
@@ -18,9 +19,9 @@ async def deduplicate(input_data: dict) -> dict:
     filtered_bci_leads = input_data["filtered_bci_leads"]
 
     # Download non-BCI file
-    blob_url = os.environ["BLOB_ACCOUNT_URL"]
-    container = os.environ.get("BLOB_CONTAINER", "project-leads")
-    non_bci_blob = os.environ.get("NON_BCI_BLOB_NAME", "non_bci_leads.xlsx")
+    blob_url = input_data.get("blob_account_url") or app_settings.blob_account_url
+    container = input_data.get("container") or app_settings.blob_container
+    non_bci_blob = input_data.get("non_bci_blob_name") or app_settings.non_bci_blob_name
 
     if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
         blob_service = BlobServiceClient.from_connection_string(blob_url)
@@ -75,10 +76,9 @@ async def deduplicate(input_data: dict) -> dict:
     )
 
     non_bci_rows = non_bci_df.to_dicts()
-    print("length:", len(non_bci_rows))
-    print("non_bci_rows:", non_bci_rows)
-    return non_bci_rows
-
+    print(f"Non-BCI rows count: {len(non_bci_rows)}")
+    return None
+    
     '''
     # Build embedding texts
     # BCI: address + project type + province
@@ -100,13 +100,15 @@ async def deduplicate(input_data: dict) -> dict:
         ]))
         non_bci_texts.append(text)
 
-    # Get embeddings from Azure OpenAI
+    token_provider = get_bearer_token_provider(
+            identity.default_credential, "https://cognitiveservices.azure.com/.default")
+
     client = AsyncAzureOpenAI(
-        azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
         api_version="2024-12-01-preview",
-        azure_ad_token_provider=default_credential,
-    )
-    embedding_model = os.environ.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-small")
+        azure_endpoint=app_settings.azure_openai_embedding_endpoint,
+        azure_ad_token_provider=token_provider)
+
+    embedding_model = app_settings.azure_openai_embedding_deployment
 
     # Batch embed (API limit ~2048 per call)
     async def get_embeddings(texts: list[str]) -> list[list[float]]:
