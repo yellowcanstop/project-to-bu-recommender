@@ -37,8 +37,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     print(f">>> Filtered BCI leads count: {len(filtered_leads)}")
     print(f">>> BU Assignments: {bu_assignments}")
     
-    return None
-    '''
+
     # ──────────────────────────────────────────────
     # PHASE 2+3: Download Non-BCI + Deduplication
     # ──────────────────────────────────────────────
@@ -51,7 +50,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     print(f">>> Duplicate candidates: {duplicate_candidates}")
 
     return {"status": "complete", "duplicate_candidates": duplicate_candidates}
-'''
+
     '''
     # ──────────────────────────────────────────────
     # PHASE 4: Human approval (wait for external event)

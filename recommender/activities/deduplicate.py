@@ -22,7 +22,12 @@ async def deduplicate(input_data: dict) -> dict:
     container = os.environ.get("BLOB_CONTAINER", "project-leads")
     non_bci_blob = os.environ.get("NON_BCI_BLOB_NAME", "non_bci_leads.xlsx")
 
-    async with BlobServiceClient(blob_url, credential=default_credential()) as blob_service:
+    if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
+        blob_service = BlobServiceClient.from_connection_string(blob_url)
+    else:
+        blob_service = BlobServiceClient(blob_url, credential=default_credential)
+
+    async with blob_service:
         blob_client = blob_service.get_blob_client(container, non_bci_blob)
         download = await blob_client.download_blob()
         content = await download.readall()
@@ -61,8 +66,20 @@ async def deduplicate(input_data: dict) -> dict:
             # Slice the dataframe to keep only the data rows below the header
             non_bci_df = non_bci_df[header_idx + 1:]
 
-    non_bci_rows = non_bci_df.to_dicts()
+    # the table in the excel file ends with a row that just states "Grand Total" in the "GSM Project ID" column, which is not a real project and doesn't have a valid ID
+    # so we drop rows where the primary ID is completely null/empty or is "Grand Total"
+    non_bci_df = non_bci_df.filter(
+        pl.col("GSM Project ID").is_not_null() & 
+        (pl.col("GSM Project ID").cast(pl.Utf8).str.strip_chars() != "") &
+        (pl.col("GSM Project ID").cast(pl.Utf8).str.strip_chars() != "Grand Total")
+    )
 
+    non_bci_rows = non_bci_df.to_dicts()
+    print("length:", len(non_bci_rows))
+    print("non_bci_rows:", non_bci_rows)
+    return non_bci_rows
+
+    '''
     # Build embedding texts
     # BCI: address + project type + province
     bci_texts = []
@@ -87,7 +104,7 @@ async def deduplicate(input_data: dict) -> dict:
     client = AsyncAzureOpenAI(
         azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
         api_version="2024-12-01-preview",
-        azure_ad_token_provider=default_credential(),
+        azure_ad_token_provider=default_credential,
     )
     embedding_model = os.environ.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-small")
 
@@ -140,3 +157,4 @@ async def deduplicate(input_data: dict) -> dict:
         "total_non_bci": len(non_bci_rows),
         "total_duplicates_found": len(duplicates),
     }
+    '''
