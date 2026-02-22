@@ -37,6 +37,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     print(f">>> Filtered BCI leads count: {len(filtered_leads)}")
     print(f">>> BU assignments: {bu_assignments}")
     
+    '''
     # ──────────────────────────────────────────────
     # PHASE 2+3: Download Non-BCI + Deduplication
     # ──────────────────────────────────────────────
@@ -45,12 +46,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     })
     duplicate_candidates = dedup_result["duplicates"]  # list of {bci_id, non_bci_id, similarity, details}
 
-    print(f">>> Found {len(duplicate_candidates)} duplicate candidates between BCI and Non-BCI leads.")
-    print(f">>> Duplicate candidates: {duplicate_candidates}")
-
-    return {"status": "complete", "duplicate_candidates": duplicate_candidates}
-
-    '''
+   
     # ──────────────────────────────────────────────
     # PHASE 4: Human approval (wait for external event)
     # ──────────────────────────────────────────────
@@ -71,13 +67,17 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
 
     # Filter out removed non-BCI duplicates (they're confirmed duplicates of BCI)
     # The remaining non-BCI leads are set aside for now
+    '''
 
     # ──────────────────────────────────────────────
     # PHASE 5+6: For each filtered BCI lead, extract signals + run agents + synthesize
     # ──────────────────────────────────────────────
     # Fan out: process each project lead in parallel
     parallel_tasks = []
-    for lead in filtered_leads:
+    # TODO test only one
+    test = filtered_leads[0] if len(filtered_leads) > 1 else None
+    for lead in test:
+    #for lead in filtered_leads:
         task = context.call_activity("process_single_lead", {
             "lead": lead,
             "bu_assignments": bu_assignments,
@@ -95,4 +95,4 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     })
 
     return {"status": "complete", "leads_processed": len(filtered_leads)}
-    '''
+    

@@ -8,7 +8,7 @@ from shared.confidence.confidence_result import OVERALL_CONFIDENCE_KEY
 def evaluate_confidence(
     extract_result: dict,
     choice: Choice,
-    model: str = "gpt-4o"
+    model: str = "gpt-4o-mini"
 ):
     """
     Evaluate confidence for each field value in the extracted result based on the logprobs of the response from Azure OpenAI.

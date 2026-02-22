@@ -26,4 +26,4 @@ azure_storage_queues_connection_string = config.get_value(
 blob_account_url = config.get_value("BLOB_ACCOUNT_URL", None)
 blob_container = config.get_value("BLOB_CONTAINER", "project-leads")
 bci_blob_name = config.get_value("BCI_BLOB_NAME", "bci_leads.xlsx")
-non_bci_blob_name = config.get_value("NON_BCI_BLOB_NAME", "non_bci_leads.xlsx")
+non_bci_blob_name = config.get_value("NON_BCI_BLOB_NAME", "non_leads.xlsx")

@@ -1,9 +1,11 @@
 import azure.durable_functions as df
 import json
 import asyncio
+import shared.identity as identity
 from pathlib import Path
 
 from shared.identity import default_credential
+from shared import app_settings
 
 blueprint = df.Blueprint()
 
@@ -48,9 +50,16 @@ def _build_lead_context(lead: dict) -> str:
         "category_1": lead.get("Category 1 Name"),
         "category_2": lead.get("Category 2 Name"),
         "category_3": lead.get("Category 3 Name"),
+        "category_4": lead.get("Category 4 Name"),
+        "category_5": lead.get("Category 5 Name"),
         "sub_category_1": lead.get("Sub-Category 1 Name"),
         "sub_category_2": lead.get("Sub-Category 2 Name"),
         "sub_category_3": lead.get("Sub-Category 3 Name"),
+        "sub_category_4": lead.get("Sub-Category 4 Name"),
+        "sub_category_5": lead.get("Sub-Category 5 Name"),
+        "sub_category_6": lead.get("Sub-Category 6 Name"),
+        "sub_category_7": lead.get("Sub-Category 7 Name"),
+        "sub_category_8": lead.get("Sub-Category 8 Name"),
         "storeys": lead.get("Storeys"),
         "project_status": lead.get("Project Status"),
         "project_stage": lead.get("Project Stage"),
@@ -72,6 +81,8 @@ async def _call_llm(client, deployment: str, system_prompt: str, user_message: s
             {"role": "user", "content": user_message},
         ],
         temperature=0.1,
+        presence_penalty=0.2, # 0.2-0.5 to discourage repetition
+        max_tokens=4096,
         response_format={"type": "json_object"},
     )
     return response.choices[0].message.content
@@ -80,18 +91,21 @@ async def _call_llm(client, deployment: str, system_prompt: str, user_message: s
 @blueprint.activity_trigger(input_name="input_data")
 async def process_single_lead(input_data: dict) -> dict:
     from openai import AsyncAzureOpenAI
-    import os
+    from azure.identity import get_bearer_token_provider
 
     lead = input_data["lead"]
     bu_assignments = input_data["bu_assignments"]
 
-    # Azure OpenAI client
+    token_provider = get_bearer_token_provider(
+        identity.default_credential, "https://cognitiveservices.azure.com/.default")
+
     client = AsyncAzureOpenAI(
-        azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+        azure_endpoint=app_settings.azure_openai_endpoint,
         api_version="2024-12-01-preview",
-        azure_ad_token_provider=default_credential(),
+        azure_ad_token_provider=token_provider,
     )
-    deployment = os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-4o")
+
+    deployment = app_settings.azure_openai_chat_deployment
 
     lead_context = _build_lead_context(lead)
 
