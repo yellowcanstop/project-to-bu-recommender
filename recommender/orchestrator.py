@@ -1,3 +1,5 @@
+import re
+
 import azure.durable_functions as df
 import json
 import logging
@@ -125,19 +127,26 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     return {"status": "complete", "leads_processed": len(filtered_leads)}
     
 
-
 def _clean_project_detail(detail: str) -> str:
-    """Strip the generic building elements dump."""
+    """
+    Strip generic building elements only if they follow the 
+    specific sequence: *Access & Parking followed by *Access Panels.
+    """
     if not detail:
         return ""
-    marker = "Building elements include:"
-    if marker in detail:
-        return detail.split(marker)[0].strip()
-    # Also try lowercase variant
-    marker_lower = "building elements include:"
-    if marker_lower in detail.lower():
-        idx = detail.lower().index(marker_lower)
-        return detail[:idx].strip()
+
+    marker_pattern = re.compile(r"building elements include:", re.IGNORECASE)
+    match = marker_pattern.search(detail)
+
+    if match:
+        marker_end_index = match.end()
+        content_after = detail[marker_end_index:].strip().lower()
+
+        fingerprint = r"^\*\s*access & parking\s+\*\s*access panels & hatches\s+\*\s*audio visual products\s+\*\s*automatic doors"
+
+        if re.match(fingerprint, content_after):
+            return detail[:match.start()].strip()
+
     return detail.strip()
 
 
