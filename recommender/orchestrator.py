@@ -43,7 +43,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         logger.info(f">>> Filtered BCI leads count: {len(filtered_leads)}")
         logger.info(f">>> BU assignments: {bu_assignments}")
     
-    '''
+    
     # ──────────────────────────────────────────────
     # PHASE 2+3: Download Non-BCI + Deduplication
     # ──────────────────────────────────────────────
@@ -52,7 +52,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     })
     duplicate_candidates = dedup_result["duplicates"]  # list of {bci_id, non_bci_id, similarity, details}
 
-   
+    '''
     # ──────────────────────────────────────────────
     # PHASE 4: Human approval (wait for external event)
     # ──────────────────────────────────────────────

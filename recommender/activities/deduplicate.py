@@ -136,17 +136,11 @@ async def deduplicate(input_data: dict) -> dict:
     similarity = non_bci_norm @ bci_norm.T
 
     # Find duplicates above threshold
-    threshold = 0.8 # cross-lingual embeddings score lower (malay-english)
+    threshold = 0.6 # cross-lingual embeddings score lower (malay-english)
     duplicates = []
     for non_bci_idx in range(len(non_bci_rows)):
         for bci_idx in range(len(filtered_bci_leads)):
             score = float(similarity[non_bci_idx, bci_idx])
-
-            #if filtered_bci_leads[bci_idx].get("Project ID") == "129285003" and non_bci_rows[non_bci_idx].get("GSM Project ID") == "129285003":
-            #    print(f"DEBUG: Similarity is {score}")
-
-            #if filtered_bci_leads[bci_idx].get("Project ID") == "90897003" and non_bci_rows[non_bci_idx].get("GSM Project ID") == "90897003":
-            #    print(f"DEBUG: Similarity is {score}")
 
             if score >= threshold:
                 duplicates.append({
