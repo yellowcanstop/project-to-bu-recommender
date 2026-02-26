@@ -5,6 +5,7 @@ from recommender.orchestrator import main as orchestrator_bp
 from recommender.activities.filter_bci import blueprint as filter_bci_bp
 from recommender.activities.deduplicate import blueprint as deduplicate_bp
 from recommender.activities.domain_agents import blueprint as domain_agents_bp
+from recommender.activities.store_results import blueprint as store_results_bp
 
 
 def register_recommender(app: df.DFApp):
@@ -37,3 +38,4 @@ def register_recommender(app: df.DFApp):
     app.register_functions(filter_bci_bp)
     app.register_functions(deduplicate_bp)
     app.register_functions(domain_agents_bp)
+    app.register_functions(store_results_bp)

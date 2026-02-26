@@ -122,10 +122,9 @@ async def synthesize_lead(params: dict) -> dict:
     print(f">>> Synthesizer confidence score: {confidence_for_synthesizer['_overall']}")
 
     return {
-        "project_id": lead.get("Project ID"),
-        "project_name": lead.get("Project Name"),
-        "assignments": parsed_result,
-        "confidence_for_synthesizer": confidence_for_synthesizer
+        "synthesized_result": parsed_result,
+        "synthesized_result_with_confidence": confidence_for_synthesizer,
+        "bu_assigned": list({item["BU"] for item in parsed_result.get("assignments", [])})
     }
 
 async def _call_llm(client, deployment: str, system_prompt: str, user_message: str) -> Tuple[Optional[Dict], Optional[Any]]:

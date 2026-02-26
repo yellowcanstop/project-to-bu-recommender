@@ -110,21 +110,37 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
                 "bu_assignments": bu_assignments
             }
         )
+        print(f">>> Final analysis for lead {lead.get('Project ID')}: {final_analysis}")
         lead_results[lead.get("Project ID")] = final_analysis
+        break # TODO to remove
     
-    logger.info(f">>> Completed processing all leads. Total results: {len(lead_results)}")
+    try:
+        serialized_data = json.dumps(lead_results)
+    except Exception as e:
+        logger.error(f"Error serializing lead results: {e}")
+        raise e
 
-    '''
+    logger.info(f">>> Payload size: {len(serialized_data) / 1024:.2f} KB")
+
+    if not context.is_replaying:
+        logger.info(f">>> Preparing to store results for {len(lead_results)} leads...")
+        
     # ──────────────────────────────────────────────
     # PHASE 7: Store final results
     # ──────────────────────────────────────────────
-    yield context.call_activity("store_results", {
+    storage_result = yield context.call_activity("store_results", {
         "recommendations": lead_results,
-        "bu_assignments": bu_assignments,
+        "instance_id": context.instance_id 
     })
-    '''
 
-    return {"status": "complete", "leads_processed": len(filtered_leads)}
+    if not context.is_replaying:
+        logger.info(f">>> Stored results for {len(lead_results)} leads to path: {storage_result.get('blob_path')}")
+
+    return {
+        "status": "complete", 
+        "leads_processed": len(lead_results),
+        "output_path": storage_result.get("blob_path")
+    }
     
 
 def _clean_project_detail(detail: str) -> str:

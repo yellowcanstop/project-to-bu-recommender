@@ -5,17 +5,17 @@ import io
 from shared.identity import default_credential
 from shared import app_settings
 
+from azure.storage.blob.aio import BlobServiceClient
+from azure.identity import get_bearer_token_provider
+from openai import AsyncAzureOpenAI
+import polars as pl
+import numpy as np
+
 blueprint = df.Blueprint()
 
 
 @blueprint.activity_trigger(input_name="input_data")
 async def deduplicate(input_data: dict) -> dict:
-    from azure.storage.blob.aio import BlobServiceClient
-    from azure.identity import get_bearer_token_provider
-    from openai import AsyncAzureOpenAI
-    import polars as pl
-    import numpy as np
-
     filtered_bci_leads = input_data["filtered_bci_leads"]
 
     # Download non-BCI file
