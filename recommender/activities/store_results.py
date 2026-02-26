@@ -8,6 +8,7 @@ from azure.core.exceptions import ResourceExistsError
 from shared.identity import default_credential
 from shared import app_settings
 
+logger = logging.getLogger(__name__)
 
 blueprint = df.Blueprint()
 
@@ -39,7 +40,7 @@ async def store_results(input_data: dict) -> dict:
                 project_id = path.split('/')[-1].replace('.json', '')
                 combined_results[project_id] = json.loads(content)
             except Exception as e:
-                logging.error(f"Failed to read temp blob {path}: {e}")
+                logger.error(f"Failed to read temp blob {path}: {e}")
 
         # 2. STORE FINAL: Save the combined JSON
         final_container = blob_service.get_container_client(final_container_name)
@@ -53,7 +54,7 @@ async def store_results(input_data: dict) -> dict:
             json.dumps(combined_results, indent=4), 
             overwrite=True
         )
-        logging.info(f"Successfully stored final results to {final_blob_name}")
+        logger.info(f"Successfully stored final results to {final_blob_name}")
 
         # 3. CLEANUP: Delete the temp blobs now that final is safe
         # We only do this AFTER the final upload succeeds
@@ -62,7 +63,7 @@ async def store_results(input_data: dict) -> dict:
                 temp_client = blob_service.get_container_client(temp_container_name)
                 await temp_client.delete_blob(path)
             except Exception as e:
-                logging.warning(f"Cleanup failed for {path}: {e}")
+                logger.warning(f"Cleanup failed for {path}: {e}")
 
     return {
         "status": "complete",

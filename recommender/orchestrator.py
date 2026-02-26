@@ -52,7 +52,6 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     })
     duplicate_candidates = dedup_result["duplicates"]  # list of {bci_id, non_bci_id, similarity, details}
 
-    '''
     # ──────────────────────────────────────────────
     # PHASE 4: Human approval (wait for external event)
     # ──────────────────────────────────────────────
@@ -73,7 +72,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
 
     # Filter out removed non-BCI duplicates (they're confirmed duplicates of BCI)
     # The remaining non-BCI leads are set aside for now
-    '''
+    print(f">>> Approved for removal (confirmed duplicates): {removed_ids}")
 
     # ──────────────────────────────────────────────
     # PHASE 5+6: For each filtered BCI lead, extract signals + run agents + synthesize
@@ -82,7 +81,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     
     for lead in filtered_leads:
         # TODO to remove
-        if lead.get('Project ID') != '90897003' or lead.get('Project ID') != '129285003':
+        if lead.get('Project ID') != '90897003' and lead.get('Project ID') != '129285003':
             continue
         
         lead_context = _build_lead_context(lead)
