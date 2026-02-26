@@ -1,3 +1,5 @@
+from typing import Dict, Optional, Tuple, Any
+
 import azure.durable_functions as df
 import json
 import asyncio
@@ -8,6 +10,7 @@ from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 from shared.identity import default_credential
 from shared import app_settings
+from shared.confidence.openai_confidence import evaluate_confidence
 
 blueprint = df.Blueprint()
 
@@ -77,11 +80,12 @@ async def run_domain_agent(params: dict) -> dict:
         "{{TAXONOMY}}", json.dumps(taxonomy, indent=2)
     )
 
-    result = await _call_llm(client, deployment, system_prompt, f"Project Lead:\n{lead_context}\n\n")
-    print(f">>> Result from {agent_key} for project lead: {result}")
+    result, choice = await _call_llm(client, deployment, system_prompt, f"Project Lead:\n{lead_context}\n\n")
     
     try:
-        return {"agent": agent_key, "recommendations": json.loads(result)}
+        result_json = json.loads(result)
+        result_with_confidence = evaluate_confidence(result_json, choice)
+        return {"agent": agent_key, "recommendations": result_with_confidence}
     except json.JSONDecodeError:
         return {"agent": agent_key, "recommendations": [], "raw": result}
 
@@ -97,7 +101,7 @@ async def synthesize_lead(params: dict) -> dict:
 
     synthesis_input = json.dumps({
         "project_lead": json.loads(lead_context),
-        "agent_recommendations": {r["agent"]: r["recommendations"] for r in agent_results},
+        "agent_recommendations_with_confidence": {r["agent"]: r["recommendations"] for r in agent_results},
         "cross_reference_matrix": CROSS_REF_MATRIX,  # From Global
         "substitution_flags": SUBSTITUTION_FLAGS,    # From Global
         "bu_assignments": {
@@ -105,22 +109,26 @@ async def synthesize_lead(params: dict) -> dict:
         }
     }, indent=2)
 
-    final_result = await _call_llm(client, deployment, SYNTHESIZER_PROMPT, synthesis_input)
+    final_result, choice = await _call_llm(client, deployment, SYNTHESIZER_PROMPT, synthesis_input)
     
     try:
         parsed_result = json.loads(final_result)
+        confidence_for_synthesizer = evaluate_confidence(parsed_result, choice)
     except json.JSONDecodeError:
         parsed_result = {"raw_output": final_result}
+        confidence_for_synthesizer = 0.0
 
     print(f">>> Final synthesized result for project {lead.get('Project ID')}: {parsed_result}")
+    print(f">>> Synthesizer confidence score: {confidence_for_synthesizer['_overall']}")
 
     return {
         "project_id": lead.get("Project ID"),
         "project_name": lead.get("Project Name"),
         "assignments": parsed_result,
+        "confidence_for_synthesizer": confidence_for_synthesizer
     }
 
-async def _call_llm(client, deployment: str, system_prompt: str, user_message: str) -> str:
+async def _call_llm(client, deployment: str, system_prompt: str, user_message: str) -> Tuple[Optional[Dict], Optional[Any]]:
     """Call Azure OpenAI chat completion."""
     response = await client.chat.completions.create(
         model=deployment,
@@ -131,6 +139,8 @@ async def _call_llm(client, deployment: str, system_prompt: str, user_message: s
         temperature=0.1,
         presence_penalty=0.2, # 0.2-0.5 to discourage repetition
         max_tokens=4096,
+        logprobs=True,
         response_format={"type": "json_object"},
     )
-    return response.choices[0].message.content
+    choice = response.choices[0]
+    return response.choices[0].message.content, choice

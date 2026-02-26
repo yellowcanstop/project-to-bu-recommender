@@ -10,8 +10,8 @@ Your 3 jobs:
 Output format (JSON only):
 {
   "assignments": [
-    {"BU": "Ajiya Metal", "Product": "Steel Truss (ARI/ARIT)", "Reason": "Matching 'steel trusses' in project narrative", "Opportunity": "Immediate", "Confidence": 0.95},
-    {"BU": "Signature International", "Product": "Premium Kitchen Systems", "Reason": "Common area fit-out likely needed for residential", "Opportunity": "Future Cross-sell", "Confidence": 0.60}
+    {"BU": "Ajiya Metal", "Product": "Steel Truss (ARI/ARIT)", "Reason": "Matching 'steel trusses' in project narrative", "Opportunity": "Immediate"},
+    {"BU": "Signature International", "Product": "Premium Kitchen Systems", "Reason": "Common area fit-out likely needed for residential", "Opportunity": "Future Cross-sell"}
   ],
   "cross_bu_bundles": [
     {"bundle": "Structure-to-Finish Wall Package", "bus": ["Starken AAC", "Starken Drymix"], "products": ["AAC Block", "Thin Bed Adhesive", "Skim Coat"]}

@@ -1,9 +1,8 @@
 import tiktoken
 import math
 from openai.types.chat.chat_completion import Choice
-from shared.confidence.confidence_utils import get_confidence_values
-from shared.confidence.confidence_result import OVERALL_CONFIDENCE_KEY
 
+OVERALL_CONFIDENCE_KEY = "_overall"
 
 def evaluate_confidence(
     extract_result: dict,
@@ -171,9 +170,37 @@ def evaluate_confidence(
     confidence_scores = get_confidence_values(confidence)
 
     if confidence_scores:
-        confidence[OVERALL_CONFIDENCE_KEY] = sum(
-            confidence_scores) / len(confidence_scores)
+        confidence[OVERALL_CONFIDENCE_KEY] = sum(confidence_scores) / len(confidence_scores)
     else:
         confidence[OVERALL_CONFIDENCE_KEY] = 0.0
 
     return confidence
+
+
+def get_confidence_values(data, key='confidence'):
+    """
+    Finds all of the confidence values in a nested dictionary or list.
+
+    Args:
+        data: The nested dictionary or list to search for confidence values.
+        key: The key to search for in the dictionary. Defaults to 'confidence'.
+
+    Returns:
+        list: The list of confidence values found in the nested dictionary or list.
+    """
+
+    confidence_values = []
+
+    def recursive_search(d):
+        if isinstance(d, dict):
+            for k, v in d.items():
+                if k == key and (v is not None and v != 0):
+                    confidence_values.append(v)
+                if isinstance(v, (dict, list)):
+                    recursive_search(v)
+        elif isinstance(d, list):
+            for item in d:
+                recursive_search(item)
+
+    recursive_search(data)
+    return confidence_values

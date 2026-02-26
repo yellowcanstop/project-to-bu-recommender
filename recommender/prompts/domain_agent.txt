@@ -10,7 +10,6 @@ For each match, provide:
 - "product": Product name
 - "match_reason": Why this product matches (reference specific narrative elements or categories)
 - "opportunity": "Immediate" if the product matches the current lifecycle phase, "Future" if it applies to a subsequent phase
-- "confidence": 0.0 to 1.0
 
 Rules:
 1. Only recommend products where there is a genuine match based on Keywords, Target Sector, Application, or Lifecycle Phase.
