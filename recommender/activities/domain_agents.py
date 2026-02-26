@@ -6,6 +6,7 @@ import asyncio
 import shared.identity as identity
 from pathlib import Path
 from openai import AsyncAzureOpenAI
+from azure.storage.blob.aio import BlobServiceClient
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 from shared.identity import default_credential
@@ -90,7 +91,7 @@ async def run_domain_agent(params: dict) -> dict:
         return {"agent": agent_key, "recommendations": [], "raw": result}
 
 @blueprint.activity_trigger(input_name="params")
-async def synthesize_lead(params: dict) -> dict:
+async def synthesize_lead(params: dict) -> str:
     # Pull everything from global memory except the lead-specific data
     lead = params["lead"]
     lead_context = params["lead_context"]
@@ -114,18 +115,44 @@ async def synthesize_lead(params: dict) -> dict:
     try:
         parsed_result = json.loads(final_result)
         confidence_for_synthesizer = evaluate_confidence(parsed_result, choice)
+        bu_assigned = list({item["BU"] for item in parsed_result.get("assignments", [])})
     except json.JSONDecodeError:
         parsed_result = {"raw_output": final_result}
         confidence_for_synthesizer = 0.0
+        bu_assigned = []
+
+    lead_id = lead.get("Project ID")
+    instance_id = params.get("instance_id")
+    final_analysis = {
+        "lead_id": lead_id,
+        "project_name": lead.get("Project Name"),
+        "assigned_bu": bu_assigned,
+        "synthesizer_confidence": confidence_for_synthesizer,
+        "detailed_results": parsed_result
+    }
+    
+    # Path: temp/orchestration_id/lead_id.json
+    temp_blob_name = f"temp/{instance_id}/{lead_id}.json"
+    blob_url = app_settings.blob_account_url
+
+    if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
+        blob_service = BlobServiceClient.from_connection_string(blob_url)
+    else:
+        blob_service = BlobServiceClient(blob_url, credential=default_credential)
+    
+    async with blob_service:
+        container_client = blob_service.get_container_client("temp-results")
+        if not await container_client.exists():
+            await container_client.create_container()
+            
+        blob_client = container_client.get_blob_client(temp_blob_name)
+        await blob_client.upload_blob(json.dumps(final_analysis), overwrite=True)
 
     print(f">>> Final synthesized result for project {lead.get('Project ID')}: {parsed_result}")
     print(f">>> Synthesizer confidence score: {confidence_for_synthesizer['_overall']}")
 
-    return {
-        "synthesized_result": parsed_result,
-        "synthesized_result_with_confidence": confidence_for_synthesizer,
-        "bu_assigned": list({item["BU"] for item in parsed_result.get("assignments", [])})
-    }
+    # return path string of temporary blob to orchestrator
+    return temp_blob_name
 
 async def _call_llm(client, deployment: str, system_prompt: str, user_message: str) -> Tuple[Optional[Dict], Optional[Any]]:
     """Call Azure OpenAI chat completion."""

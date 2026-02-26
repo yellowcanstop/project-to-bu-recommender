@@ -78,11 +78,11 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     # PHASE 5+6: For each filtered BCI lead, extract signals + run agents + synthesize
     # ──────────────────────────────────────────────
-    lead_results = {}
+    temp_paths = []
     
     for lead in filtered_leads:
         # TODO to remove
-        if lead.get('Project ID') != '90897003':
+        if lead.get('Project ID') != '90897003' or lead.get('Project ID') != '129285003':
             continue
         
         lead_context = _build_lead_context(lead)
@@ -101,44 +101,29 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         agent_results = yield context.task_all(agent_tasks)
 
         # PHASE 6: Synthesis (Fan-in)
-        final_analysis = yield context.call_activity(
+        path = yield context.call_activity(
             "synthesize_lead", 
             {
                 "lead": lead,
                 "lead_context": lead_context,
                 "agent_results": agent_results,
-                "bu_assignments": bu_assignments
+                "bu_assignments": bu_assignments,
+                "instance_id": context.instance_id 
             }
         )
-        print(f">>> Final analysis for lead {lead.get('Project ID')}: {final_analysis}")
-        lead_results[lead.get("Project ID")] = final_analysis
-        break # TODO to remove
-    
-    try:
-        serialized_data = json.dumps(lead_results)
-    except Exception as e:
-        logger.error(f"Error serializing lead results: {e}")
-        raise e
-
-    logger.info(f">>> Payload size: {len(serialized_data) / 1024:.2f} KB")
-
-    if not context.is_replaying:
-        logger.info(f">>> Preparing to store results for {len(lead_results)} leads...")
+        temp_paths.append(path)
         
     # ──────────────────────────────────────────────
-    # PHASE 7: Store final results
+    # PHASE 7: Aggregate stored final results
     # ──────────────────────────────────────────────
     storage_result = yield context.call_activity("store_results", {
-        "recommendations": lead_results,
+        "temp_paths": temp_paths,
         "instance_id": context.instance_id 
     })
 
-    if not context.is_replaying:
-        logger.info(f">>> Stored results for {len(lead_results)} leads to path: {storage_result.get('blob_path')}")
-
     return {
         "status": "complete", 
-        "leads_processed": len(lead_results),
+        "leads_processed": len(temp_paths),
         "output_path": storage_result.get("blob_path")
     }
     

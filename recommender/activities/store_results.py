@@ -2,7 +2,9 @@ import azure.durable_functions as df
 import json
 import io
 import datetime
+import logging
 from azure.storage.blob.aio import BlobServiceClient
+from azure.core.exceptions import ResourceExistsError
 from shared.identity import default_credential
 from shared import app_settings
 
@@ -11,46 +13,59 @@ blueprint = df.Blueprint()
 
 @blueprint.activity_trigger(input_name="input_data")
 async def store_results(input_data: dict) -> dict:
-    """
-    Stores the final synthesis results into Azure Blob Storage as a JSON file.
-    """
-    recommendations = input_data.get("recommendations", {})
-    # Use instance_id for the filename if provided, otherwise timestamp
-    instance_id = input_data.get("instance_id", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    temp_paths = input_data.get("temp_paths", [])
+    instance_id = input_data.get("instance_id")
+    temp_container_name = "temp-results"
+    final_container_name = "recommender-outputs"
     
-    blob_url = app_settings.blob_account_url
-    container_name = app_settings.results_container_name  
-    blob_name = f"results/recommendations_{instance_id}.json"
+    combined_results = {}
 
+    blob_url = app_settings.blob_account_url
+    
     if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
         blob_service = BlobServiceClient.from_connection_string(blob_url)
     else:
         blob_service = BlobServiceClient(blob_url, credential=default_credential)
 
-    json_data = json.dumps(recommendations, indent=4)
-    data_stream = io.BytesIO(json_data.encode('utf-8'))
+    async with blob_service:
+        # 1. AGGREGATE: Download all individual lead results
+        for path in temp_paths:
+            try:
+                temp_client = blob_service.get_blob_client(temp_container_name, path)
+                stream = await temp_client.download_blob()
+                content = await stream.readall()
+                
+                # Use the filename as the key (Project ID)
+                project_id = path.split('/')[-1].replace('.json', '')
+                combined_results[project_id] = json.loads(content)
+            except Exception as e:
+                logging.error(f"Failed to read temp blob {path}: {e}")
 
-    try:
-        async with blob_service:
-            container_client = blob_service.get_container_client(container_name)
+        # 2. STORE FINAL: Save the combined JSON
+        final_container = blob_service.get_container_client(final_container_name)
+        if not await final_container.exists():
+            await final_container.create_container()
             
-            if not await container_client.exists():
-              await container_client.create_container()
+        final_blob_name = f"results/recommendations_{instance_id}.json"
+        final_blob_client = final_container.get_blob_client(final_blob_name)
+        
+        await final_blob_client.upload_blob(
+            json.dumps(combined_results, indent=4), 
+            overwrite=True
+        )
+        logging.info(f"Successfully stored final results to {final_blob_name}")
 
-            blob_client = container_client.get_blob_client(blob_name)
-            
-            await blob_client.upload_blob(
-                data_stream, 
-                blob_type="BlockBlob", 
-                overwrite=True
-            )
+        # 3. CLEANUP: Delete the temp blobs now that final is safe
+        # We only do this AFTER the final upload succeeds
+        for path in temp_paths:
+            try:
+                temp_client = blob_service.get_container_client(temp_container_name)
+                await temp_client.delete_blob(path)
+            except Exception as e:
+                logging.warning(f"Cleanup failed for {path}: {e}")
 
-        return {
-            "status": "success",
-            "blob_path": f"{container_name}/{blob_name}",
-            "leads_stored": len(recommendations)
-        }
-    
-    except Exception as e:
-        print(f"Error storing results: {str(e)}")
-        raise e
+    return {
+        "status": "complete",
+        "final_path": f"{final_container_name}/{final_blob_name}",
+        "count": len(combined_results)
+    }
