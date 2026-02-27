@@ -71,7 +71,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         removed_ids = []
 
     # Filter out removed non-BCI duplicates (they're confirmed duplicates of BCI)
-    # The remaining non-BCI leads are set aside for now
+    # remaining non-BCI leads: TODO lightweight llm classifier to infer category/sector then also go through phase 5+6
     print(f">>> Approved for removal (confirmed duplicates): {removed_ids}")
 
     # ──────────────────────────────────────────────

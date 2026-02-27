@@ -164,7 +164,7 @@ async def _call_llm(client, deployment: str, system_prompt: str, user_message: s
         ],
         temperature=0.1,
         presence_penalty=0.2, # 0.2-0.5 to discourage repetition
-        max_tokens=4096,
+        #max_tokens=4096,
         logprobs=True,
         response_format={"type": "json_object"},
     )
