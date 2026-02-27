@@ -10,6 +10,7 @@ from azure.identity import get_bearer_token_provider
 from openai import AsyncAzureOpenAI
 import polars as pl
 import numpy as np
+import fastexcel
 
 blueprint = df.Blueprint()
 
@@ -33,52 +34,32 @@ async def deduplicate(input_data: dict) -> dict:
         download = await blob_client.download_blob()
         content = await download.readall()
 
-    non_bci_df = pl.read_excel(io.BytesIO(content))
+    # non-bci file has multiple sheets with the same table so we need to get names of all sheets and merge them
+    f = fastexcel.read_excel(content)
+    sheet_names = f.sheet_names
+    dfs = []
+    for sheet in sheet_names:
+        raw = pl.read_excel(
+            io.BytesIO(content),
+            sheet_name=sheet,
+            has_header=False
+        )
+        normalized = find_and_normalize(raw, sheet)
+        if normalized is not None:
+            dfs.append(normalized)
 
-    # If 'GSM Project ID' isn't in the headers, search all rows/columns to find the true header row
-    if "GSM Project ID" not in non_bci_df.columns:
-        header_idx = None
-        
-        # iter_rows() yields tuples of the row values
-        for i, row_tuple in enumerate(non_bci_df.iter_rows()):
-            # Check if 'GSM Project ID' is in any cell of this row
-            if any(str(val).strip() == "GSM Project ID" for val in row_tuple if val is not None):
-                header_idx = i
-                break
-                
-        if header_idx is not None:
-            # Extract that row to use as headers, stripping trailing spaces
-            real_headers = [str(val).strip() if val is not None else f"unnamed_{j}" for j, val in enumerate(non_bci_df.row(header_idx))]
-            
-            # Polars requires unique column names. Ensure no duplicates just in case.
-            seen = set()
-            unique_headers = []
-            for h in real_headers:
-                new_h = h
-                count = 1
-                while new_h in seen:
-                    new_h = f"{h}_{count}"
-                    count += 1
-                seen.add(new_h)
-                unique_headers.append(new_h)
-
-            non_bci_df = non_bci_df.rename(dict(zip(non_bci_df.columns, unique_headers)))
-            
-            # Slice the dataframe to keep only the data rows below the header
-            non_bci_df = non_bci_df[header_idx + 1:]
+    non_bci_df = pl.concat(dfs)
 
     # the table in the excel file ends with a row that just states "Grand Total" in the "GSM Project ID" column, which is not a real project and doesn't have a valid ID
-    # so we drop rows where the primary ID is completely null/empty or is "Grand Total"
+    # we cannot drop rows where the primary ID is null/empty because some rows have missing GSM Project ID but still contain valid project name and province
+    # so we drop rows where the primary ID is "Grand Total"
     non_bci_df = non_bci_df.filter(
-        pl.col("GSM Project ID").is_not_null() & 
-        (pl.col("GSM Project ID").cast(pl.Utf8).str.strip_chars() != "") &
         (pl.col("GSM Project ID").cast(pl.Utf8).str.strip_chars() != "Grand Total")
     )
 
-    non_bci_rows = non_bci_df.to_dicts()
-    print(f"Non-BCI rows count: {len(non_bci_rows)}")
-    print(f"Non-BCI: {non_bci_rows}")
-    
+    non_bci_rows = non_bci_df.to_dicts()    
+
+    print(f"Filtered BCI leads: {len(filtered_bci_leads)}, Non-BCI rows: {len(non_bci_rows)}")
     
     # Build embedding texts
     bci_texts = []
@@ -98,6 +79,7 @@ async def deduplicate(input_data: dict) -> dict:
         text = " | ".join(filter(None, [
             str(row.get("Project", "")),
             str(row.get("Province", "")),
+            str(row.get("source_sheet", "")),
         ]))
         non_bci_texts.append(text)
 
@@ -136,7 +118,7 @@ async def deduplicate(input_data: dict) -> dict:
     similarity = non_bci_norm @ bci_norm.T
 
     # Find duplicates above threshold
-    threshold = 0.6 # cross-lingual embeddings score lower (malay-english)
+    threshold = 0.7 # cross-lingual embeddings score lower (malay-english)
     duplicates = []
     for non_bci_idx in range(len(non_bci_rows)):
         for bci_idx in range(len(filtered_bci_leads)):
@@ -162,4 +144,36 @@ async def deduplicate(input_data: dict) -> dict:
         "total_non_bci": len(non_bci_rows),
         "total_duplicates_found": len(duplicates),
     }
-    
+
+def find_and_normalize(df: pl.DataFrame, source_sheet: str) -> pl.DataFrame:
+    """
+    Locates the header row, standardizes column names, and ensures a 
+    consistent schema across different Excel sheets.
+    """
+    header_idx = None
+    for i, row_tuple in enumerate(df.iter_rows()):
+        if any(str(val).strip() == "GSM Project ID" for val in row_tuple if val is not None):
+            header_idx = i
+            break
+
+    if header_idx is None:
+        return None
+
+    raw_headers = [
+        str(val).strip() if val is not None else f"unnamed_{j}" 
+        for j, val in enumerate(df.row(header_idx))
+    ]
+
+    df = df.rename(dict(zip(df.columns, raw_headers)))
+    df = df.slice(header_idx + 1)
+
+    target_cols = ["GSM Project ID", "Project", "Province"]
+    available_cols = [c for c in target_cols if c in df.columns]
+    df = df.select(available_cols)
+
+    # if a sheet is missing some of the target columns, add them with null values to maintain a consistent schema
+    for col in target_cols:
+        if col not in df.columns:
+            df = df.with_columns(pl.lit(None).alias(col))
+
+    return df.with_columns(pl.lit(source_sheet).alias("source_sheet"))
