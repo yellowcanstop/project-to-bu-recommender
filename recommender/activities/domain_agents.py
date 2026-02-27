@@ -148,9 +148,6 @@ async def synthesize_lead(params: dict) -> str:
         blob_client = container_client.get_blob_client(temp_blob_name)
         await blob_client.upload_blob(json.dumps(final_analysis), overwrite=True)
 
-    print(f">>> Final synthesized result for project {lead.get('Project ID')}: {parsed_result}")
-    print(f">>> Synthesizer confidence score: {confidence_for_synthesizer['_overall']}")
-
     # return path string of temporary blob to orchestrator
     return temp_blob_name
 

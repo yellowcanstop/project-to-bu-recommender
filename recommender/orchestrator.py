@@ -36,6 +36,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         logger.info(">>> Orchestrator started, calling filter_bci...")
 
     filter_result = yield context.call_activity("filter_bci", input_data)
+    rejection_map = filter_result.get("rejection_map", {})
     filtered_leads = filter_result["filtered_leads"]  # list of project lead dicts
     bu_assignments = filter_result["bu_assignments"]  # {bu_name: [project_ids]}
 
@@ -115,15 +116,21 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     # PHASE 7: Aggregate stored final results
     # ──────────────────────────────────────────────
-    storage_result = yield context.call_activity("store_results", {
+    if not context.is_replaying:
+        logger.info(f">>> Phase 7: Aggregating {len(temp_paths)} leads...")
+
+    final_output = yield context.call_activity("aggregate_and_finalize_results", {
         "temp_paths": temp_paths,
+        "explicit_assignments": bu_assignments, # phase 1 filters
+        "rejection_map": rejection_map,
+        "confidence_threshold": 0.85,           
         "instance_id": context.instance_id 
     })
 
     return {
         "status": "complete", 
         "leads_processed": len(temp_paths),
-        "output_path": storage_result.get("blob_path")
+        "final_report_path": final_output.get("blob_path")
     }
     
 

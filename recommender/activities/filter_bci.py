@@ -130,15 +130,22 @@ async def filter_bci(input_data: dict) -> dict:
 
     # Filter per BU
     bu_assignments: dict[str, list[str]] = {}
+    rejection_map = {} # New: {project_id: {bu_name: "Reason"}}
     all_matched_ids: set[str] = set()
 
     for bu_name, bu_filter in bu_filters.items():
         matched_ids = []
         for row in rows:
+            project_id = str(row.get("Project ID", ""))
             if bu_filter.matches(row):
-                project_id = str(row.get("Project ID", ""))
                 matched_ids.append(project_id)
                 all_matched_ids.add(project_id)
+            else:
+                # If the lead passed AT LEAST ONE other BU, we want to know why THIS BU rejected it
+                reason = _get_rejection_reason(bu_filter, row)
+                if project_id not in rejection_map:
+                    rejection_map[project_id] = {}
+                rejection_map[project_id][bu_name] = reason
         bu_assignments[bu_name] = matched_ids
 
     # Build filtered leads list (union of all BU matches)
@@ -147,9 +154,62 @@ async def filter_bci(input_data: dict) -> dict:
         if str(row.get("Project ID", "")) in all_matched_ids
     ]
 
+    # Final cleanup: only keep rejection reasons for leads that actually made it into the pipeline
+    filtered_rejection_map = {
+        pid: rejections for pid, rejections in rejection_map.items() 
+        if pid in all_matched_ids
+    }
+
     return {
         "filtered_leads": filtered_leads,
         "bu_assignments": bu_assignments,
+        "rejection_map": filtered_rejection_map,
         "total_bci_rows": len(rows),
         "total_filtered": len(filtered_leads),
     }
+
+
+def _get_rejection_reason(bu_filter: BUFilter, row: dict) -> str:
+    """Helper to identify the first failing criteria for diagnostics."""
+    
+    # 1. Check Project Value
+    if not bu_filter._matches_value(row):
+        val_str = str(row.get("Local Value") or "0")
+        return f"Value too low: {val_str} (Target: >={bu_filter.min_value})"
+
+    # 2. Check Subcategory (Fuzzy Match)
+    if not bu_filter._matches_subcategory(row):
+        row_subcats = [str(row.get(f"Sub-Category {i} Name") or "").strip() for i in range(1, 9)]
+        row_subcats = [s for s in row_subcats if s]
+        return f"Sub-Category mismatch. Found: {row_subcats}. Expected one of: {bu_filter.subcategory}"
+
+    # 3. Check Province / State
+    if not bu_filter._matches_state(row):
+        province = str(row.get("Project Province / State") or "N/A").strip()
+        return f"Region mismatch: '{province}' not in {bu_filter.project_state}"
+
+    # 4. Check Project Status (e.g., Tenders, Design)
+    if not bu_filter._matches_status(row):
+        status = str(row.get("Project Status") or "N/A").strip()
+        return f"Status mismatch: '{status}' not accepted for this BU."
+
+    # 5. Check Dates (Year parsing)
+    if not bu_filter._matches_dates(row):
+        start = row.get("Construction Start Date (Original format)")
+        end = row.get("Construction End Date (Original format)")
+        return f"Date outside range (Start: {start}, End: {end})"
+
+    # 6. Check Development Type
+    if not bu_filter._matches_development_type(row):
+        dev_type = str(row.get("Development Type") or "N/A").strip()
+        return f"Dev Type mismatch: '{dev_type}' vs required {bu_filter.development_type}"
+
+    # 7. Check Unit Minimums (Complex Regex Checks)
+    if not bu_filter._matches_unit_minimums(row):
+        project_type = str(row.get("Project Type") or "N/A")
+        # Determine if it was a subcat-specific unit fail or a total unit fail
+        if bu_filter.subcategory_min_units:
+             return f"Insufficient units for specific category in Project Type: '{project_type}'"
+        return f"Total units below minimum requirement. Project Type: '{project_type}'"
+
+    return "Unknown filter rejection"
