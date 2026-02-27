@@ -75,7 +75,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     print(f">>> Approved for removal (confirmed duplicates): {removed_ids}")
 
     # ──────────────────────────────────────────────
-    # PHASE 5+6: For each filtered BCI lead, extract signals + run agents + synthesize
+    # PHASE 5+6: For each filtered BCI lead, run agents + synthesize + store results in temp storage (per lead)
     # ──────────────────────────────────────────────
     temp_paths = []
     
