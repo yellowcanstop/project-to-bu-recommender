@@ -35,10 +35,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     # Returns: {"makna_setia": [id1, id2], "ppch": [id3, id4], ...}
     # Plus the full filtered dataframe as serialized JSON rows
-
-    if not context.is_replaying:
-        logger.info(">>> Orchestrator started, calling filter_bci...")
-
+    context.set_custom_status({"phase": "Filtering BCI leads based on BU parameters...", "progress": 10})
     filter_result = yield context.call_activity("filter_bci", input_data)
     rejection_map = filter_result.get("rejection_map", {})
     filtered_leads = filter_result["filtered_leads"]  # list of project lead dicts
@@ -52,6 +49,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     # PHASE 2+3: Download Non-BCI + Deduplication
     # ──────────────────────────────────────────────
+    context.set_custom_status({"phase": "Filtering completed! Deduplicating BCI leads against Non-BCI leads...", "progress": 20})
     dedup_result = yield context.call_activity("deduplicate", {
         "filtered_bci_leads": filtered_leads,
         "non_bci_blob_name": nbci_name,
@@ -62,34 +60,44 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # PHASE 4: Human approval (wait for external event)
     # ──────────────────────────────────────────────
     if len(duplicate_candidates) > 0:
-        # Send duplicates to UI — store in blob for the frontend to fetch
         yield context.call_activity("store_duplicates_for_review", {
             "instance_id": context.instance_id,
             "duplicates": duplicate_candidates,
         })
+        context.set_custom_status({
+            "phase": "Duplicates identified! Awaiting user-approved duplicate removal...", 
+            "progress": 30, 
+            "has_duplicates": True,
+            "duplicate_count": len(duplicate_candidates)
+        })
 
-        # Wait for human response (with timeout)
-        import datetime
         approval = yield context.wait_for_external_event("duplicate_approval")
         # approval = {"removed_ids": ["X006116", ...]}
         removed_ids = approval.get("removed_ids", [])
     else:
+        context.set_custom_status({
+            "phase": "No duplicates found! Proceeding to the recommender...",
+            "progress": 30
+        })
         removed_ids = []
 
     # Filter out removed non-BCI duplicates (they're confirmed duplicates of BCI)
     # remaining non-BCI leads: TODO lightweight llm classifier to infer category/sector then also go through phase 5+6
-    print(f">>> Approved for removal (confirmed duplicates): {removed_ids}")
+    if not context.is_replaying:
+        logger.info(f">>> User approved removal of {len(removed_ids)} duplicates: {removed_ids}")
 
     # ──────────────────────────────────────────────
     # PHASE 5+6: For each filtered BCI lead, run agents + synthesize + store results in temp storage (per lead)
     # ──────────────────────────────────────────────
     temp_paths = []
-    
+    total_leads = len(filtered_leads)
     for i, lead in enumerate(filtered_leads):
         context.set_custom_status({
-            "percentage": int((i / len(filtered_leads)) * 100),
+            "phase": "AI Recommender Running",
+            "progress": 30 + int((i / total_leads) * 60), # Scaled 30% to 90%
             "current_lead": lead.get('Project Name'),
-            "phase": "Processing Agents"
+            "processed_count": i + 1,
+            "total_count": total_leads
         })
 
         # TODO to remove
@@ -97,7 +105,6 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
             continue
         
         lead_context = _build_lead_context(lead)
-        logger.info(f">>> Processing lead {lead.get('Project ID')}: {lead.get('Project Name')}")
         agent_tasks = []
         for i in range(1,7):
             agent_key = f"agent_{i}"
@@ -108,10 +115,8 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
             task = context.call_activity("run_domain_agent", params)
             agent_tasks.append(task)
 
-        # Wait for all 6 agents for THIS lead
         agent_results = yield context.task_all(agent_tasks)
 
-        # PHASE 6: Synthesis (Fan-in)
         path = yield context.call_activity(
             "synthesize_lead", 
             {
@@ -129,6 +134,11 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     if not context.is_replaying:
         logger.info(f">>> Phase 7: Aggregating {len(temp_paths)} leads...")
+    
+    context.set_custom_status({
+        "phase": "Aggregating results and generating final report...",
+        "progress": 95
+    })
 
     final_output = yield context.call_activity("aggregate_and_finalize_results", {
         "temp_paths": temp_paths,

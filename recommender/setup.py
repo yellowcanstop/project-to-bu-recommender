@@ -87,21 +87,50 @@ def register_recommender(app: df.DFApp):
         instance_id = await client.start_new("recommender_orchestrator", client_input=body)
         return client.create_check_status_response(req, instance_id)
 
+    @app.route(route="recommender/duplicates/{instance_id}", methods=["GET"])
+    async def get_duplicates(req: func.HttpRequest) -> func.HttpResponse:
+        instance_id = req.route_params.get("instance_id")
+        container_name = "duplicate-reviews"
+        blob_name = f"pending/{instance_id}.json"
+        
+        blob_service = BlobServiceClient.from_connection_string(app_settings.blob_account_url)
+        blob_client = blob_service.get_blob_client(container_name, blob_name)
+        
+        if not await blob_client.exists():
+            return func.HttpResponse("Not found", status_code=404)
+
+        stream = await blob_client.download_blob()
+        data = await stream.readall()
+        return func.HttpResponse(data, mimetype="application/json")
+
     # callback for human-approved removal of BCI and non-BCI duplicates
     @app.route(route="recommender/approve/{instance_id}", methods=["POST"])
     @app.durable_client_input(client_name="client")
     async def approve_duplicates(req: func.HttpRequest, client: df.DurableOrchestrationClient):
         instance_id = req.route_params["instance_id"]
-        body = req.get_json()  # {"removed_ids": ["MEISID123", ...]}
-        await client.raise_event(instance_id, "duplicate_approval", body)
-        return func.HttpResponse(status_code=202)
+        body = await req.get_json()  # {"removed_ids": ["MEISID123", ...]}
+        removed_ids = body.get("removed_ids", [])
+        await client.raise_event(instance_id, "duplicate_approval", {"removed_ids": removed_ids})
+        return func.HttpResponse(status_code=200)
 
     @app.route(route="recommender/status/{instance_id}", methods=["GET"])
     @app.durable_client_input(client_name="client")
     async def check_status(req: func.HttpRequest, client: df.DurableOrchestrationClient):
         instance_id = req.route_params["instance_id"]
+        logger.info(f"Checking status for instance ID: {instance_id}")
         status = await client.get_status(instance_id)
-        return func.HttpResponse(status.to_json(), mimetype="application/json")
+        if not status:
+            return func.HttpResponse(
+                json.dumps({"error": "Instance ID not found or not yet initialized."}),
+                mimetype="application/json",
+                status_code=404
+            )
+        status_data = status.to_json()
+        return func.HttpResponse(
+            json.dumps(status_data), 
+            mimetype="application/json",
+            status_code=200
+        )
 
     # Register the blueprints
     app.register_functions(orchestrator_bp)
