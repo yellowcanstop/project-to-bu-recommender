@@ -14,6 +14,28 @@ import fastexcel
 
 blueprint = df.Blueprint()
 
+chat_client = AsyncAzureOpenAI(
+    azure_endpoint=app_settings.azure_openai_endpoint,
+    api_version="2024-12-01-preview",
+    azure_ad_token_provider=get_bearer_token_provider(default_credential, "https://cognitiveservices.azure.com/.default"),
+)
+
+# Embedding Client (for deduplication)
+embedding_client = AsyncAzureOpenAI(
+    azure_endpoint=app_settings.azure_openai_embedding_endpoint,
+    api_version="2024-12-01-preview",
+    azure_ad_token_provider=get_bearer_token_provider(default_credential, "https://cognitiveservices.azure.com/.default"),
+)
+
+# Initialize Global Blob Service Client
+blob_url = app_settings.blob_account_url
+if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
+    # Local development or Connection String
+    blob_service = BlobServiceClient.from_connection_string(blob_url)
+else:
+    # Production with Managed Identity
+    blob_service = BlobServiceClient(blob_url, credential=default_credential)
+
 
 @blueprint.activity_trigger(input_name="input_data")
 async def deduplicate(input_data: dict) -> dict:
@@ -24,23 +46,18 @@ async def deduplicate(input_data: dict) -> dict:
     container = input_data.get("container") or app_settings.blob_container
     non_bci_blob = input_data.get("non_bci_blob_name")
 
-    if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
-        blob_service = BlobServiceClient.from_connection_string(blob_url)
-    else:
-        blob_service = BlobServiceClient(blob_url, credential=default_credential)
-
-    async with blob_service:
-        blob_client = blob_service.get_blob_client(container, non_bci_blob)
-        download = await blob_client.download_blob()
-        content = await download.readall()
+    blob_client = blob_service.get_blob_client(container, non_bci_blob)
+    download = await blob_client.download_blob()
+    content = await download.readall()
 
     # non-bci file has multiple sheets with the same table so we need to get names of all sheets and merge them
     f = fastexcel.read_excel(content)
     sheet_names = f.sheet_names
     dfs = []
+    excel_data = io.BytesIO(content)
     for sheet in sheet_names:
         raw = pl.read_excel(
-            io.BytesIO(content),
+            excel_data,
             sheet_name=sheet,
             has_header=False
         )
@@ -83,14 +100,6 @@ async def deduplicate(input_data: dict) -> dict:
         ]))
         non_bci_texts.append(text)
 
-    token_provider = get_bearer_token_provider(
-            identity.default_credential, "https://cognitiveservices.azure.com/.default")
-
-    client = AsyncAzureOpenAI(
-        api_version="2024-12-01-preview",
-        azure_endpoint=app_settings.azure_openai_embedding_endpoint,
-        azure_ad_token_provider=token_provider)
-
     embedding_model = app_settings.azure_openai_embedding_deployment
 
     # Batch embed (API limit ~2048 per call)
@@ -99,7 +108,7 @@ async def deduplicate(input_data: dict) -> dict:
         batch_size = 500
         for i in range(0, len(texts), batch_size):
             batch = texts[i:i + batch_size]
-            response = await client.embeddings.create(model=embedding_model, input=batch)
+            response = await embedding_client.embeddings.create(model=embedding_model, input=batch)
             all_embeddings.extend([item.embedding for item in response.data])
         return all_embeddings
 
@@ -118,7 +127,7 @@ async def deduplicate(input_data: dict) -> dict:
     similarity = non_bci_norm @ bci_norm.T
 
     # Find duplicates above threshold
-    threshold = 0.7 # cross-lingual embeddings score lower (malay-english)
+    threshold = 0.5 # cross-lingual embeddings score lower (malay-english)
     duplicates = []
     for non_bci_idx in range(len(non_bci_rows)):
         for bci_idx in range(len(filtered_bci_leads)):

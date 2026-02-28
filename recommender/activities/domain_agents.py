@@ -63,6 +63,15 @@ client = AsyncAzureOpenAI(
     max_retries=5 # The SDK will handle some 429s for you automatically
 )
 
+# Initialize Global Blob Service Client
+blob_url = app_settings.blob_account_url
+if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
+    # Local development or Connection String
+    blob_service = BlobServiceClient.from_connection_string(blob_url)
+else:
+    # Production with Managed Identity
+    blob_service = BlobServiceClient(blob_url, credential=default_credential)
+
 deployment = app_settings.azure_openai_chat_deployment
 
 @blueprint.activity_trigger(input_name="params")
@@ -133,20 +142,14 @@ async def synthesize_lead(params: dict) -> str:
     
     # Path: temp/orchestration_id/lead_id.json
     temp_blob_name = f"temp/{instance_id}/{lead_id}.json"
-    blob_url = app_settings.blob_account_url
 
-    if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
-        blob_service = BlobServiceClient.from_connection_string(blob_url)
-    else:
-        blob_service = BlobServiceClient(blob_url, credential=default_credential)
-    
-    async with blob_service:
-        container_client = blob_service.get_container_client("temp-results")
-        if not await container_client.exists():
-            await container_client.create_container()
-            
-        blob_client = container_client.get_blob_client(temp_blob_name)
-        await blob_client.upload_blob(json.dumps(final_analysis), overwrite=True)
+    container_client = blob_service.get_container_client("temp-results")
+
+    if not await container_client.exists():
+        await container_client.create_container()
+        
+    blob_client = container_client.get_blob_client(temp_blob_name)
+    await blob_client.upload_blob(json.dumps(final_analysis), overwrite=True)
 
     # return path string of temporary blob to orchestrator
     return temp_blob_name

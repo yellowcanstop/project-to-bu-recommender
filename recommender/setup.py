@@ -108,7 +108,10 @@ def register_recommender(app: df.DFApp):
     @app.durable_client_input(client_name="client")
     async def approve_duplicates(req: func.HttpRequest, client: df.DurableOrchestrationClient):
         instance_id = req.route_params["instance_id"]
-        body = await req.get_json()  # {"removed_ids": ["MEISID123", ...]}
+        try:
+            body = req.get_json() # {"removed_ids": ["MEISID123", ...]}
+        except ValueError:
+            return func.HttpResponse("Invalid JSON", status_code=400)
         removed_ids = body.get("removed_ids", [])
         await client.raise_event(instance_id, "duplicate_approval", {"removed_ids": removed_ids})
         return func.HttpResponse(status_code=200)
