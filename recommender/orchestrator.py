@@ -26,6 +26,10 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
 
     input_data = context.get_input()
 
+    # file names are session-specific
+    bci_name = input_data.get("bci_blob_name")
+    nbci_name = input_data.get("non_bci_blob_name")
+
     # ──────────────────────────────────────────────
     # PHASE 1: Download BCI + filter per BU
     # ──────────────────────────────────────────────
@@ -50,6 +54,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     dedup_result = yield context.call_activity("deduplicate", {
         "filtered_bci_leads": filtered_leads,
+        "non_bci_blob_name": nbci_name,
     })
     duplicate_candidates = dedup_result["duplicates"]  # list of {bci_id, non_bci_id, similarity, details}
 

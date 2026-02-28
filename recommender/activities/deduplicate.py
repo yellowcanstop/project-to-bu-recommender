@@ -22,7 +22,7 @@ async def deduplicate(input_data: dict) -> dict:
     # Download non-BCI file
     blob_url = input_data.get("blob_account_url") or app_settings.blob_account_url
     container = input_data.get("container") or app_settings.blob_container
-    non_bci_blob = input_data.get("non_bci_blob_name") or app_settings.non_bci_blob_name
+    non_bci_blob = input_data.get("non_bci_blob_name")
 
     if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
         blob_service = BlobServiceClient.from_connection_string(blob_url)

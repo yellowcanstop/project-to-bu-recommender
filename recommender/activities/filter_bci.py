@@ -67,7 +67,7 @@ async def filter_bci(input_data: dict) -> dict:
     # Get connection string or URL from input, fallback to app_settings
     blob_url = input_data.get("blob_account_url") or app_settings.blob_account_url
     container = input_data.get("container") or app_settings.blob_container
-    bci_blob_name = input_data.get("bci_blob_name") or app_settings.bci_blob_name
+    bci_blob_name = input_data.get("bci_blob_name")
 
     if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
         blob_service = BlobServiceClient.from_connection_string(blob_url)

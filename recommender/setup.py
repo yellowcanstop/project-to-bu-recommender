@@ -1,3 +1,5 @@
+import uuid
+
 import azure.functions as func
 import azure.durable_functions as df
 
@@ -7,6 +9,7 @@ import logging
 from azure.storage.blob.aio import BlobServiceClient
 from shared.identity import default_credential
 from shared import app_settings
+from datetime import datetime
 
 from recommender.orchestrator import main as orchestrator_bp
 from recommender.activities.filter_bci import blueprint as filter_bci_bp
@@ -15,21 +18,30 @@ from recommender.activities.domain_agents import blueprint as domain_agents_bp
 from recommender.activities.aggregate_and_finalize_results import blueprint as aggregate_and_finalize_results_bp
 from recommender.activities.store_duplicates_for_review import blueprint as store_duplicates_for_review_bp
 
+logger = logging.getLogger(__name__)
+
+
 
 def register_recommender(app: df.DFApp):
 
     @app.route(route="recommender/upload", methods=["POST"])
     async def upload_leads(req: func.HttpRequest):
-        logging.info("Processing file upload...")
+        logger.info("Processing file upload...")
 
         # 1. Parse the multipart form data
         # Streamlit/Curl will send files under specific keys
         file = req.files.get('file')
+        lead_type = req.form.get('lead_type', 'unclassified')
         if not file:
             return func.HttpResponse("No file provided in the 'file' field.", status_code=400)
 
-        filename = file.filename
-        container_name = "project-leads"
+        # file name pattern: lead_type/YYYYMMDD_HHMM_UUID_original_name.xlsx
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        unique_id = str(uuid.uuid4())[:8]
+        clean_filename = file.filename.replace(" ", "_")
+
+        blob_name = f"{lead_type}/{timestamp}_{unique_id}_{clean_filename}"
+        container_name = app_settings.blob_container or "project-leads"
         
         # 2. Initialize Blob Client (using your existing logic pattern)
         blob_url = app_settings.blob_account_url
@@ -47,26 +59,25 @@ def register_recommender(app: df.DFApp):
                     await container_client.create_container()
 
                 # 3. Upload the file stream directly
-                blob_client = container_client.get_blob_client(filename)
+                blob_client = container_client.get_blob_client(blob_name)
                 file_body = file.read()
                 
                 await blob_client.upload_blob(file_body, overwrite=True)
                 
-                logging.info(f"Successfully uploaded {filename} to {container_name}")
+                logger.info(f"Successfully uploaded {blob_name} to {container_name}")
 
             return func.HttpResponse(
                 json.dumps({
-                    "message": "File uploaded successfully",
-                    "blob_name": filename,
-                    "container": container_name,
-                    "size_bytes": len(file_body)
+                    "message": f"Successfully uploaded to {lead_type}",
+                    "blob_path": blob_name,
+                    "lead_type": lead_type
                 }),
                 mimetype="application/json",
                 status_code=200
             )
 
         except Exception as e:
-            logging.error(f"Upload failed: {str(e)}")
+            logger.error(f"Upload failed: {str(e)}")
             return func.HttpResponse(f"Internal Error: {str(e)}", status_code=500)
     
     @app.route(route="recommender/start", methods=["POST"])
