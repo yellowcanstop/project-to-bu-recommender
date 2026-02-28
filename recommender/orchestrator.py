@@ -80,7 +80,13 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     temp_paths = []
     
-    for lead in filtered_leads:
+    for i, lead in enumerate(filtered_leads):
+        context.set_custom_status({
+            "percentage": int((i / len(filtered_leads)) * 100),
+            "current_lead": lead.get('Project Name'),
+            "phase": "Processing Agents"
+        })
+
         # TODO to remove
         if lead.get('Project ID') != '90897003' and lead.get('Project ID') != '129285003':
             continue
