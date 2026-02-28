@@ -170,7 +170,7 @@ def _clean_project_detail(detail: str) -> str:
         marker_end_index = match.end()
         content_after = detail[marker_end_index:].strip().lower()
 
-        fingerprint = r"^\*\s*access & parking\s+\*\s*access panels & hatches\s+\*\s*audio visual products\s+\*\s*automatic doors"
+        fingerprint = r"^\*\s*access & parking\s+\*\s*access panels & hatches"
 
         if re.match(fingerprint, content_after):
             return detail[:match.start()].strip()
