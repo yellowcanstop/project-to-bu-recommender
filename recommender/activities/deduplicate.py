@@ -24,6 +24,8 @@ chat_client = AsyncAzureOpenAI(
 async def deduplicate(input_data: dict) -> dict:
     filtered_bci_leads = input_data["filtered_bci_leads"]
 
+    bci_df = pl.DataFrame(filtered_bci_leads)
+
     # Download non-BCI file
     blob_url = input_data.get("blob_account_url") or app_settings.blob_account_url
     container = input_data.get("container") or app_settings.blob_container
@@ -54,40 +56,30 @@ async def deduplicate(input_data: dict) -> dict:
         if normalized is not None:
             dfs.append(normalized)
 
-    non_bci_df = pl.concat(dfs)
-
     # the table in the excel file ends with a row that just states "Grand Total" in the "GSM Project ID" column, which is not a real project and doesn't have a valid ID
     # we cannot drop rows where the primary ID is null/empty because some rows have missing GSM Project ID but still contain valid project name and province
     # so we drop rows where the primary ID is "Grand Total"
-    non_bci_df = non_bci_df.filter(
+    non_bci_df = pl.concat(dfs).filter(
         (pl.col("GSM Project ID").cast(pl.Utf8).str.strip_chars() != "Grand Total")
     )
 
-    non_bci_rows = non_bci_df.to_dicts()    
+    bci_texts = (
+        bci_df.select([
+            pl.format("{} | {} | {}", 
+                      pl.col("Project Address").fill_null(""),
+                      pl.col("Project Name").fill_null(""),
+                      pl.col("Project Type").fill_null(""))
+        ]).to_series().to_list()
+    )
 
-    print(f"Filtered BCI leads: {len(filtered_bci_leads)}, Non-BCI rows: {len(non_bci_rows)}")
-    
-    # Build embedding texts
-    bci_texts = []
-    for lead in filtered_bci_leads:
-        text = " | ".join(filter(None, [
-            str(lead.get("Project Address", "")),
-            str(lead.get("Project Name", "")),
-            str(lead.get("Project Type", "")),
-        ]))
-        bci_texts.append(text)
-
-    print(f"BCI: {bci_texts}")
-
-    # Non-BCI: project name + province (limited fields available)
-    non_bci_texts = []
-    for row in non_bci_rows:
-        text = " | ".join(filter(None, [
-            str(row.get("Project", "")),
-            str(row.get("Province", "")),
-            str(row.get("source_sheet", "")),
-        ]))
-        non_bci_texts.append(text)
+    non_bci_texts = (
+        non_bci_df.select([
+            pl.format("{} | {} | {}", 
+                      pl.col("Project").fill_null(""),
+                      pl.col("Province").fill_null(""),
+                      pl.col("source_sheet").fill_null(""))
+        ]).to_series().to_list()
+    )
 
     # Embedding Client (for deduplication)
     embedding_client = AsyncAzureOpenAI(
@@ -99,57 +91,68 @@ async def deduplicate(input_data: dict) -> dict:
     embedding_model = app_settings.azure_openai_embedding_deployment
 
     # Batch embed (API limit ~2048 per call)
-    async def get_embeddings(texts: list[str]) -> list[list[float]]:
+    async def get_embeddings(texts: list[str]) -> np.ndarray:
         all_embeddings = []
         batch_size = 500
         for i in range(0, len(texts), batch_size):
             batch = texts[i:i + batch_size]
             response = await embedding_client.embeddings.create(model=embedding_model, input=batch)
             all_embeddings.extend([item.embedding for item in response.data])
-        return all_embeddings
+        return np.array(all_embeddings)
 
     try:
-        bci_embeddings = await get_embeddings(bci_texts)
-        non_bci_embeddings = await get_embeddings(non_bci_texts)
+        bci_matrix = await get_embeddings(bci_texts)
+        non_bci_matrix = await get_embeddings(non_bci_texts)
     finally:
         await embedding_client.close()
 
-    # Cosine similarity
-    bci_matrix = np.array(bci_embeddings)
-    non_bci_matrix = np.array(non_bci_embeddings)
-
+    # 5. Vectorized Similarity Calculation
     # Normalize
     bci_norm = bci_matrix / np.linalg.norm(bci_matrix, axis=1, keepdims=True)
     non_bci_norm = non_bci_matrix / np.linalg.norm(non_bci_matrix, axis=1, keepdims=True)
 
-    # Similarity matrix: (num_non_bci x num_bci)
+    # Similarity matrix: (M_non_bci x N_bci)
     similarity = non_bci_norm @ bci_norm.T
 
-    # Find duplicates above threshold
-    threshold = 0.5 # cross-lingual embeddings score lower (malay-english)
-    duplicates = []
-    for non_bci_idx in range(len(non_bci_rows)):
-        for bci_idx in range(len(filtered_bci_leads)):
-            score = float(similarity[non_bci_idx, bci_idx])
+    # 6. VECTORIZED INDEXING (The Loop Replacement)
+    threshold = 0.5
+    # Find coordinates where similarity >= threshold
+    non_bci_indices, bci_indices = np.where(similarity >= threshold)
+    
+    # Get the actual scores for those coordinates
+    relevant_scores = similarity[non_bci_indices, bci_indices]
 
-            if score >= threshold:
-                duplicates.append({
-                    "non_bci_id": str(non_bci_rows[non_bci_idx].get("GSM Project ID", "")),
-                    "non_bci_project": str(non_bci_rows[non_bci_idx].get("Project", "")),
-                    "non_bci_province": str(non_bci_rows[non_bci_idx].get("Province", "")),
-                    "bci_id": str(filtered_bci_leads[bci_idx].get("Project ID", "")),
-                    "bci_project": str(filtered_bci_leads[bci_idx].get("Project Name", "")),
-                    "bci_address": str(filtered_bci_leads[bci_idx].get("Project Address", "")),
-                    "bci_type": str(filtered_bci_leads[bci_idx].get("Project Type", "")),
-                    "similarity": round(score, 4),
-                })
+    # Create the result by gathering rows from the dataframes
+    # This avoids iterating over the full original dataframes
+    if len(non_bci_indices) > 0:
+        # Pull matching rows from Non-BCI
+        dupe_non_bci = non_bci_df[non_bci_indices].select([
+            pl.col("GSM Project ID").alias("non_bci_id"),
+            pl.col("Project").alias("non_bci_project"),
+            pl.col("Province").alias("non_bci_province")
+        ])
 
-    # Sort by similarity descending
-    duplicates.sort(key=lambda x: x["similarity"], reverse=True)
+        # Pull matching rows from BCI
+        dupe_bci = bci_df[bci_indices].select([
+            pl.col("Project ID").alias("bci_id"),
+            pl.col("Project Name").alias("bci_project"),
+            pl.col("Project Address").alias("bci_address"),
+            pl.col("Project Type").alias("bci_type")
+        ])
+
+        # Combine them horizontally and add the similarity score
+        duplicates_df = pl.concat([dupe_non_bci, dupe_bci], how="horizontal")
+        duplicates_df = duplicates_df.with_columns(
+            pl.lit(relevant_scores).round(4).alias("similarity")
+        ).sort("similarity", descending=True)
+
+        duplicates = duplicates_df.to_dicts()
+    else:
+        duplicates = []
 
     return {
         "duplicates": duplicates,
-        "total_non_bci": len(non_bci_rows),
+        "total_non_bci": len(non_bci_df),
         "total_duplicates_found": len(duplicates),
     }
 

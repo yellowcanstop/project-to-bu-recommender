@@ -117,6 +117,7 @@ async def aggregate_and_finalize_results(params: dict) -> dict:
 
     return {
         "status": "complete",
-        "final_path": f"recommender-outputs/{final_blob_name}",
+        "results": final_output,
+        "blob_path": f"recommender-outputs/{final_blob_name}",
         "count": len(all_results)
     }

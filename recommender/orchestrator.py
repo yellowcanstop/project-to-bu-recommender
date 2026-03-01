@@ -154,9 +154,15 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         "instance_id": context.instance_id 
     })
 
+    context.set_custom_status({
+        "phase": "Successfully completed!",
+        "progress": 100
+    })
+
     return {
         "status": "complete", 
         "leads_processed": len(temp_paths),
+        "results": final_output.get("results"),
         "final_report_path": final_output.get("blob_path")
     }
     
