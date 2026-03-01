@@ -1,6 +1,7 @@
 import azure.durable_functions as df
 import polars as pl
 import io
+import numpy as np
 
 from shared.identity import default_credential
 from shared import app_settings
@@ -160,12 +161,25 @@ async def filter_bci(input_data: dict) -> dict:
         if pid in all_matched_ids
     }
 
+    def clean_for_json(obj):
+        if isinstance(obj, (np.float64, np.float32)):
+            return float(obj) if not np.isnan(obj) else None
+        if isinstance(obj, (np.int64, np.int32)):
+            return int(obj)
+        return obj
+
+    # Sanitize leads before returning
+    sanitized_leads = [
+        {k: clean_for_json(v) for k, v in row.items()} 
+        for row in filtered_leads
+    ]
+
     return {
-        "filtered_leads": filtered_leads,
+        "filtered_leads": sanitized_leads,
         "bu_assignments": bu_assignments,
         "rejection_map": filtered_rejection_map,
         "total_bci_rows": len(rows),
-        "total_filtered": len(filtered_leads),
+        "total_filtered": len(sanitized_leads),
     }
 
 

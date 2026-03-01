@@ -25,6 +25,8 @@ main = df.Blueprint()
 def recommender_orchestrator(context: df.DurableOrchestrationContext):
 
     input_data = context.get_input()
+    if isinstance(input_data, str):
+        input_data = json.loads(input_data)
 
     # file names are session-specific
     bci_name = input_data.get("bci_blob_name")
@@ -37,6 +39,8 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # Plus the full filtered dataframe as serialized JSON rows
     context.set_custom_status({"phase": "Filtering BCI leads based on BU parameters...", "progress": 10})
     filter_result = yield context.call_activity("filter_bci", input_data)
+    if isinstance(filter_result, str):
+        filter_result = json.loads(filter_result)
     rejection_map = filter_result.get("rejection_map", {})
     filtered_leads = filter_result["filtered_leads"]  # list of project lead dicts
     bu_assignments = filter_result["bu_assignments"]  # {bu_name: [project_ids]}
@@ -72,6 +76,8 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         })
 
         approval = yield context.wait_for_external_event("duplicate_approval")
+        if isinstance(approval, str):
+            approval = json.loads(approval)
         # approval = {"removed_ids": ["X006116", ...]}
         removed_ids = approval.get("removed_ids", [])
     else:

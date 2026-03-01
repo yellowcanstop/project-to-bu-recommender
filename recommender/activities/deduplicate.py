@@ -20,23 +20,6 @@ chat_client = AsyncAzureOpenAI(
     azure_ad_token_provider=get_bearer_token_provider(default_credential, "https://cognitiveservices.azure.com/.default"),
 )
 
-# Embedding Client (for deduplication)
-embedding_client = AsyncAzureOpenAI(
-    azure_endpoint=app_settings.azure_openai_embedding_endpoint,
-    api_version="2024-12-01-preview",
-    azure_ad_token_provider=get_bearer_token_provider(default_credential, "https://cognitiveservices.azure.com/.default"),
-)
-
-# Initialize Global Blob Service Client
-blob_url = app_settings.blob_account_url
-if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
-    # Local development or Connection String
-    blob_service = BlobServiceClient.from_connection_string(blob_url)
-else:
-    # Production with Managed Identity
-    blob_service = BlobServiceClient(blob_url, credential=default_credential)
-
-
 @blueprint.activity_trigger(input_name="input_data")
 async def deduplicate(input_data: dict) -> dict:
     filtered_bci_leads = input_data["filtered_bci_leads"]
@@ -46,9 +29,15 @@ async def deduplicate(input_data: dict) -> dict:
     container = input_data.get("container") or app_settings.blob_container
     non_bci_blob = input_data.get("non_bci_blob_name")
 
-    blob_client = blob_service.get_blob_client(container, non_bci_blob)
-    download = await blob_client.download_blob()
-    content = await download.readall()
+    if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
+        blob_service = BlobServiceClient.from_connection_string(blob_url)
+    else:
+        blob_service = BlobServiceClient(blob_url, credential=default_credential)
+
+    async with blob_service:
+        blob_client = blob_service.get_blob_client(container, non_bci_blob)
+        download = await blob_client.download_blob()
+        content = await download.readall()
 
     # non-bci file has multiple sheets with the same table so we need to get names of all sheets and merge them
     f = fastexcel.read_excel(content)
@@ -100,6 +89,13 @@ async def deduplicate(input_data: dict) -> dict:
         ]))
         non_bci_texts.append(text)
 
+    # Embedding Client (for deduplication)
+    embedding_client = AsyncAzureOpenAI(
+        azure_endpoint=app_settings.azure_openai_embedding_endpoint,
+        api_version="2024-12-01-preview",
+        azure_ad_token_provider=get_bearer_token_provider(default_credential, "https://cognitiveservices.azure.com/.default"),
+    )
+
     embedding_model = app_settings.azure_openai_embedding_deployment
 
     # Batch embed (API limit ~2048 per call)
@@ -112,8 +108,11 @@ async def deduplicate(input_data: dict) -> dict:
             all_embeddings.extend([item.embedding for item in response.data])
         return all_embeddings
 
-    bci_embeddings = await get_embeddings(bci_texts)
-    non_bci_embeddings = await get_embeddings(non_bci_texts)
+    try:
+        bci_embeddings = await get_embeddings(bci_texts)
+        non_bci_embeddings = await get_embeddings(non_bci_texts)
+    finally:
+        await embedding_client.close()
 
     # Cosine similarity
     bci_matrix = np.array(bci_embeddings)
