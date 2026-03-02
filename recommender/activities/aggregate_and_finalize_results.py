@@ -70,8 +70,6 @@ async def aggregate_and_finalize_results(params: dict) -> dict:
                     bu_max_scores[bu_name] = score
 
             for bu, max_conf in bu_max_scores.items():
-                # TODO to remove
-                print(f"Lead {lead_id}: Final max confidence for BU {bu} is {max_conf}")
 
                 lookup_key = bu.lower().replace(" ", "")
 
@@ -90,7 +88,7 @@ async def aggregate_and_finalize_results(params: dict) -> dict:
                     original_rejection = rejection_map.get(lead_id, {}).get(bu, "Criteria mismatch")
                     rescued_lead = analysis.copy()
                     rescued_lead["rescue_metadata"] = {
-                        "ai_confidence": f"{round(max_conf * 100, 1)}%",
+                        "ai_confidence": max_conf,
                         "original_rejection_reason": original_rejection
                     }
                     final_output["business_units"][bu]["discovery"].append(rescued_lead)

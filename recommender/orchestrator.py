@@ -40,7 +40,9 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     # Returns: {"makna_setia": [id1, id2], "ppch": [id3, id4], ...}
     # Plus the full filtered dataframe as serialized JSON rows
-    context.set_custom_status({"phase": "Filtering BCI leads based on BU parameters...", "progress": 10})
+    context.set_custom_status({
+        "phase": "Filtering BCI leads based on BU parameters...", "progress": 10
+    })
     filter_result = yield context.call_activity("filter_bci", input_data)
     if isinstance(filter_result, str):
         filter_result = json.loads(filter_result)
@@ -82,10 +84,14 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
             "duplicates": duplicate_candidates,
         })
         context.set_custom_status({
-            "phase": "Duplicates identified! Awaiting user-approved duplicate removal...", 
+            "phase": "Duplicates identified! Awaiting user action...", 
             "progress": 30, 
             "has_duplicates": True,
-            "duplicate_count": len(duplicate_candidates)
+            "duplicate_count": len(duplicate_candidates),
+            "processed_count": 0,
+            "total_count": total_leads,
+            "batch_number": 0,
+            "total_batches": total_batches
         })
 
         approval = yield context.wait_for_external_event("duplicate_approval")
@@ -96,7 +102,11 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     else:
         context.set_custom_status({
             "phase": "No duplicates found! Proceeding to the recommender...",
-            "progress": 30
+            "progress": 30,
+            "processed_count": 0,
+            "total_count": total_leads,
+            "batch_number": 0,
+            "total_batches": total_batches
         })
         removed_ids = []
 
@@ -125,7 +135,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
             "batch_number": batch_idx,
             "total_batches": total_batches,
             "processed_count": i,
-            "total_leads": total_leads
+            "total_count": total_leads
         })
 
         # Fan-out: Start sub-orchestrations for this batch
