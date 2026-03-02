@@ -4,6 +4,8 @@ import azure.durable_functions as df
 import json
 import logging
 
+from datetime import timedelta
+
 logger = logging.getLogger(__name__)
 
 '''
@@ -23,6 +25,7 @@ main = df.Blueprint()
 @main.function_name(name)
 @main.orchestration_trigger(context_name="context", orchestration=name)
 def recommender_orchestrator(context: df.DurableOrchestrationContext):
+    batch_size = 5
 
     input_data = context.get_input()
     if isinstance(input_data, str):
@@ -53,7 +56,17 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     # PHASE 2+3: Download Non-BCI + Deduplication
     # ──────────────────────────────────────────────
-    context.set_custom_status({"phase": "Filtering completed! Deduplicating BCI leads against Non-BCI leads...", "progress": 20})
+    total_leads = len(filtered_leads)
+    total_batches = (total_leads + batch_size - 1) // batch_size
+    context.set_custom_status({
+        "phase": "Filtering completed! Deduplicating BCI leads against Non-BCI leads...",
+        "progress": 20,
+        "processed_count": 0,
+        "total_count": total_leads,
+        "batch_number": 0,
+        "total_batches": total_batches
+    })
+
     dedup_result = yield context.call_activity("deduplicate", {
         "filtered_bci_leads": filtered_leads,
         "non_bci_blob_name": nbci_name,
@@ -93,47 +106,48 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         logger.info(f">>> User approved removal of {len(removed_ids)} duplicates: {removed_ids}")
 
     # ──────────────────────────────────────────────
-    # PHASE 5+6: For each filtered BCI lead, run agents + synthesize + store results in temp storage (per lead)
+    # PHASE 5+6: Batched fan-out/fan-in
     # ──────────────────────────────────────────────
     temp_paths = []
     total_leads = len(filtered_leads)
-    for i, lead in enumerate(filtered_leads):
+    total_batches = (total_leads + batch_size - 1) // batch_size
+
+    ai_start_time = context.current_utc_datetime.isoformat()
+
+    for i in range(0, total_leads, batch_size):
+        batch = filtered_leads[i : i + batch_size]
+        batch_idx = (i // batch_size) + 1
+        
         context.set_custom_status({
-            "phase": "AI Recommender Running",
-            "progress": 30 + int((i / total_leads) * 60), # Scaled 30% to 90%
-            "current_lead": lead.get('Project Name'),
-            "processed_count": i + 1,
-            "total_count": total_leads
+            "phase": "AI Recommender Running (Parallel)",
+            "progress": 30 + int((i / total_leads) * 60),
+            "ai_start_time": ai_start_time,
+            "batch_number": batch_idx,
+            "total_batches": total_batches,
+            "processed_count": i,
+            "total_leads": total_leads
         })
 
-        # TODO to remove
-        if lead.get('Project ID') != '90897003' and lead.get('Project ID') != '129285003':
-            continue
-        
-        lead_context = _build_lead_context(lead)
-        agent_tasks = []
-        for i in range(1,7):
-            agent_key = f"agent_{i}"
-            params = {
-                "agent_key": agent_key,
-                "lead_context": lead_context
-            }
-            task = context.call_activity("run_domain_agent", params)
-            agent_tasks.append(task)
-
-        agent_results = yield context.task_all(agent_tasks)
-
-        path = yield context.call_activity(
-            "synthesize_lead", 
-            {
+        # Fan-out: Start sub-orchestrations for this batch
+        parallel_tasks = []
+        for lead in batch:
+            # TODO to remove
+            #if lead.get('Project ID') not in ['90897003', '129285003']: continue
+            
+            task = context.call_sub_orchestrator("process_single_lead", {
                 "lead": lead,
-                "lead_context": lead_context,
-                "agent_results": agent_results,
-                "bu_assignments": bu_assignments,
-                "instance_id": context.instance_id 
-            }
-        )
-        temp_paths.append(path)
+                "bu_assignments": bu_assignments
+            })
+            parallel_tasks.append(task)
+
+        # Fan-in: Wait for this batch to complete
+        batch_results = yield context.task_all(parallel_tasks)
+        temp_paths.extend(batch_results)
+
+        # Optional: Throttling / Rate Limiting
+        # 2-3 seconds of breathing room between batches
+        fire_at = context.current_utc_datetime + timedelta(seconds=2)
+        yield context.create_timer(fire_at)
         
     # ──────────────────────────────────────────────
     # PHASE 7: Aggregate stored final results
@@ -222,3 +236,30 @@ def _build_lead_context(lead: dict) -> str:
         "owner_type": lead.get("Owner Type Level 1 Primary"),
         "development_type": lead.get("Development Type"),
     }, indent=2)
+
+@main.orchestration_trigger(context_name="context", orchestration="process_single_lead")
+def process_single_lead_sub_orchestrator(context: df.DurableOrchestrationContext):
+    data = context.get_input()
+    lead = data["lead"]
+    bu_assignments = data["bu_assignments"]
+    
+    lead_context = _build_lead_context(lead)
+    
+    # Fan-out: Run 6 agents in parallel for THIS lead
+    agent_tasks = []
+    for i in range(1, 7):
+        params = {"agent_key": f"agent_{i}", "lead_context": lead_context}
+        agent_tasks.append(context.call_activity("run_domain_agent", params))
+    
+    agent_results = yield context.task_all(agent_tasks)
+
+    # Fan-in: Synthesize
+    path = yield context.call_activity("synthesize_lead", {
+        "lead": lead,
+        "lead_context": lead_context,
+        "agent_results": agent_results,
+        "bu_assignments": bu_assignments,
+        "instance_id": context.parent_instance_id # Use parent ID for storage grouping
+    })
+    
+    return path
