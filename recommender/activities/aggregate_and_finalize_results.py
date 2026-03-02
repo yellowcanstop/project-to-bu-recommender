@@ -81,13 +81,17 @@ async def aggregate_and_finalize_results(params: dict) -> dict:
                     final_output["summary"]["bu_counts"][bu] = {"verified": 0, "discovery": 0}
 
                 if is_explicit:
-                    final_output["business_units"][bu]["verified"].append(analysis)
+                    verified_lead = analysis.copy()
+                    verified_lead["match_metadata"] = {
+                        "ai_confidence": max_conf
+                    }
+                    final_output["business_units"][bu]["verified"].append(verified_lead)
                     final_output["summary"]["bu_counts"][bu]["verified"] += 1
                 elif is_high_conf:
                     # "why was this a discovery?" tooltip on lead card on frontend can show original rejection reason (e.g. AI suggested this lead but BU-given filtering parameters rejected it)
                     original_rejection = rejection_map.get(lead_id, {}).get(bu, "Criteria mismatch")
                     rescued_lead = analysis.copy()
-                    rescued_lead["rescue_metadata"] = {
+                    rescued_lead["match_metadata"] = {
                         "ai_confidence": max_conf,
                         "original_rejection_reason": original_rejection
                     }

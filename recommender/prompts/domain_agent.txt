@@ -31,7 +31,7 @@ Reasoning rules:
    a weak match.
 4. Only recommend products from your assigned taxonomy.
 
-Return valid JSON only:
+Return valid JSON only. Example output:
 {
   "recommendations": [
     {

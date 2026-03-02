@@ -29,7 +29,7 @@ Your 3 jobs:
    - "Immediate": relevant to the current phase explicitly referenced or strongly implied in the project lead
    - "Future Cross-sell": relevant to a subsequent phase not yet active but logically following
 
-Output format (JSON only):
+Output format with example data (JSON only):
 {
   "assignments": [
     {
@@ -50,7 +50,7 @@ Output format (JSON only):
       "bundle": "Structure-to-Finish Wall Package",
       "bus": ["Starken AAC", "Starken Drymix"],
       "products": ["AAC Block", "Thin Bed Adhesive", "Skim Coat"],
-      "trigger": "AAC block wall specified by Agent 4 → mandatory finish chain per cross_reference_matrix"
+      "reason": use trigger_condition and detail from cross_reference_matrix
     }
   ],
   "conflicts_resolved": [
@@ -58,7 +58,7 @@ Output format (JSON only):
       "conflict": "Roofing",
       "winner": "Metal Roofing (Ajiya)",
       "loser": "Concrete Tiles (PPCH)",
-      "reason": "Industrial span specified; lightweight envelope preferred per substitution_flags"
+      "reason": use resolution_logic from substitution_flags
     }
   ]
 }

@@ -122,33 +122,28 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     total_leads = len(filtered_leads)
     total_batches = (total_leads + batch_size - 1) // batch_size
 
-    ai_start_time = context.current_utc_datetime.isoformat()
-
     for i in range(0, total_leads, batch_size):
         batch = filtered_leads[i : i + batch_size]
         batch_idx = (i // batch_size) + 1
         
+        current_batch_progress = int((i / total_leads) * 60)
+    
         context.set_custom_status({
-            "phase": "AI Recommender Running (Parallel)",
-            "progress": 30 + int((i / total_leads) * 60),
-            "ai_start_time": ai_start_time,
+            "phase": "AI Recommender Running...",
+            "progress": 30 + current_batch_progress,
             "batch_number": batch_idx,
             "total_batches": total_batches,
-            "processed_count": i,
+            "processed_count": i + len(batch), # Change: Show leads currently being handled
+            "processing_range": f"{i+1}-{min(i+batch_size, total_leads)}", # Extra info for UX
             "total_count": total_leads
         })
 
         # Fan-out: Start sub-orchestrations for this batch
-        parallel_tasks = []
-        for lead in batch:
-            # TODO to remove
-            #if lead.get('Project ID') not in ['90897003', '129285003']: continue
-            
-            task = context.call_sub_orchestrator("process_single_lead", {
-                "lead": lead,
-                "bu_assignments": bu_assignments
-            })
-            parallel_tasks.append(task)
+        parallel_tasks = [
+            context.call_sub_orchestrator("process_single_lead", {
+                "lead": lead, "bu_assignments": bu_assignments
+            }) for lead in batch
+        ]
 
         # Fan-in: Wait for this batch to complete
         batch_results = yield context.task_all(parallel_tasks)
@@ -167,7 +162,9 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     
     context.set_custom_status({
         "phase": "Aggregating results and generating final report...",
-        "progress": 95
+        "progress": 95,
+        "processed_count": total_leads,
+        "total_count": total_leads
     })
 
     final_output = yield context.call_activity("aggregate_and_finalize_results", {
@@ -180,7 +177,9 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
 
     context.set_custom_status({
         "phase": "Successfully completed!",
-        "progress": 100
+        "progress": 100,
+        "processed_count": total_leads,
+        "total_count": total_leads
     })
 
     return {
