@@ -135,6 +135,13 @@ async def synthesize_lead(params: dict) -> str:
     final_analysis = {
         "lead_id": lead_id,
         "project_name": lead.get("Project Name"),
+        "project_value": lead.get("Local Value"),
+        "project_status": lead.get("Project Status"),
+        "project_stage": lead.get("Project Stage"),
+        "construction_start": lead.get("Construction Start Date (Original format)"),
+        "construction_end": lead.get("Construction End Date (Original format)"),
+        "region": lead.get("Project Region"),
+        "development_type": lead.get("Development Type"),
         "assigned_bu": bu_assigned,
         "synthesizer_confidence": confidence_for_synthesizer,
         "detailed_results": parsed_result
