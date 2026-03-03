@@ -44,11 +44,7 @@ def register_recommender(app: df.DFApp):
         container_name = app_settings.blob_container or "project-leads"
         
         # 2. Initialize Blob Client (using your existing logic pattern)
-        blob_url = app_settings.blob_account_url
-        if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
-            blob_service = BlobServiceClient.from_connection_string(blob_url)
-        else:
-            blob_service = BlobServiceClient(blob_url, credential=default_credential)
+        blob_service = BlobServiceClient.from_connection_string(app_settings.blob_account_url)
 
         try:
             async with blob_service:

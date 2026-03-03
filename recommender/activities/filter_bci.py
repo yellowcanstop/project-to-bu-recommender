@@ -70,10 +70,7 @@ async def filter_bci(input_data: dict) -> dict:
     container = input_data.get("container") or app_settings.blob_container
     bci_blob_name = input_data.get("bci_blob_name")
 
-    if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
-        blob_service = BlobServiceClient.from_connection_string(blob_url)
-    else:
-        blob_service = BlobServiceClient(blob_url, credential=default_credential)
+    blob_service = BlobServiceClient.from_connection_string(app_settings.blob_account_url)
 
 
     # Download BCI Excel from blob

@@ -17,7 +17,7 @@ blueprint = df.Blueprint()
 chat_client = AsyncAzureOpenAI(
     azure_endpoint=app_settings.azure_openai_endpoint,
     api_version="2024-12-01-preview",
-    azure_ad_token_provider=get_bearer_token_provider(default_credential, "https://cognitiveservices.azure.com/.default"),
+    api_key=app_settings.azure_openai_key
 )
 
 @blueprint.activity_trigger(input_name="input_data")
@@ -31,10 +31,7 @@ async def deduplicate(input_data: dict) -> dict:
     container = input_data.get("container") or app_settings.blob_container
     non_bci_blob = input_data.get("non_bci_blob_name")
 
-    if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
-        blob_service = BlobServiceClient.from_connection_string(blob_url)
-    else:
-        blob_service = BlobServiceClient(blob_url, credential=default_credential)
+    blob_service = BlobServiceClient.from_connection_string(app_settings.blob_account_url)
 
     async with blob_service:
         blob_client = blob_service.get_blob_client(container, non_bci_blob)
@@ -85,7 +82,7 @@ async def deduplicate(input_data: dict) -> dict:
     embedding_client = AsyncAzureOpenAI(
         azure_endpoint=app_settings.azure_openai_embedding_endpoint,
         api_version="2024-12-01-preview",
-        azure_ad_token_provider=get_bearer_token_provider(default_credential, "https://cognitiveservices.azure.com/.default"),
+        api_key=app_settings.azure_openai_key
     )
 
     embedding_model = app_settings.azure_openai_embedding_deployment

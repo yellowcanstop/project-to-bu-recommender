@@ -16,7 +16,7 @@
   },
   "extensions": {
     "durableTask": {
-      "hubName": "MyTaskHub",
+      "hubName": "MyTaskHubV2",
       "maxConcurrentActivityFunctions": 10 
     }
   }

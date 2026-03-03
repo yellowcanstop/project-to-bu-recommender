@@ -17,12 +17,8 @@ async def store_duplicates_for_review(input_data: dict) -> dict:
     container_name = "duplicate-reviews"
     blob_name = f"pending/{instance_id}.json"
 
-    blob_url = app_settings.blob_account_url
 
-    if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
-        blob_service = BlobServiceClient.from_connection_string(blob_url)
-    else:
-        blob_service = BlobServiceClient(blob_url, credential=default_credential)
+    blob_service = BlobServiceClient.from_connection_string(app_settings.blob_account_url)
 
     async with blob_service:
         container_client = blob_service.get_container_client(container_name)

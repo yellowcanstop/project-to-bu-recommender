@@ -21,12 +21,8 @@ async def aggregate_and_finalize_results(params: dict) -> dict:
 
     print(f"Explicit Map: {explicit_map}")
 
-    # 1. Connection Logic (Robust for Local & Cloud)
-    blob_url = app_settings.blob_account_url
-    if "UseDevelopmentStorage=true" in blob_url or "DefaultEndpointsProtocol" in blob_url:
-        blob_service = BlobServiceClient.from_connection_string(blob_url)
-    else:
-        blob_service = BlobServiceClient(blob_url, credential=default_credential)
+    blob_service = BlobServiceClient.from_connection_string(app_settings.blob_account_url)
+
 
     async with blob_service:
         temp_container = blob_service.get_container_client("temp-results")

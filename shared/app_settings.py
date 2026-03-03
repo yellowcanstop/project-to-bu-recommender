@@ -10,6 +10,7 @@ config = Configuration()
 
 otel_exporter_otlp_endpoint = config.get_value(
     "OTEL_EXPORTER_OTLP_ENDPOINT", None)
+azure_openai_key = config.get_value("AZURE_OPENAI_API_KEY", None)
 azure_openai_endpoint = config.get_value("AZURE_OPENAI_ENDPOINT", None)
 azure_openai_chat_deployment = config.get_value(
     "AZURE_OPENAI_CHAT_DEPLOYMENT", None)
