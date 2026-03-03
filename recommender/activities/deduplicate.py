@@ -115,7 +115,7 @@ async def deduplicate(input_data: dict) -> dict:
     similarity = non_bci_norm @ bci_norm.T
 
     # 6. VECTORIZED INDEXING (The Loop Replacement)
-    threshold = 0.5
+    threshold = 0.6
     # Find coordinates where similarity >= threshold
     non_bci_indices, bci_indices = np.where(similarity >= threshold)
     
