@@ -17,6 +17,7 @@ from recommender.activities.deduplicate import blueprint as deduplicate_bp
 from recommender.activities.domain_agents import blueprint as domain_agents_bp
 from recommender.activities.aggregate_and_finalize_results import blueprint as aggregate_and_finalize_results_bp
 from recommender.activities.store_duplicates_for_review import blueprint as store_duplicates_for_review_bp
+from recommender.activities.store_bci_and_nonbci import blueprint as store_bci_and_nonbci_bp
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +100,22 @@ def register_recommender(app: df.DFApp):
         data = await stream.readall()
         return func.HttpResponse(data, mimetype="application/json")
 
+    @app.route(route="recommender/leads/{instance_id}", methods=["GET"])
+    async def get_leads(req: func.HttpRequest) -> func.HttpResponse:
+        instance_id = req.route_params.get("instance_id")
+        container_name = "processed-leads-combined"
+        blob_name = f"final/{instance_id}.json"
+        
+        blob_service = BlobServiceClient.from_connection_string(app_settings.blob_account_url)
+        blob_client = blob_service.get_blob_client(container_name, blob_name)
+        
+        if not await blob_client.exists():
+            return func.HttpResponse("Not found", status_code=404)
+
+        stream = await blob_client.download_blob()
+        data = await stream.readall()
+        return func.HttpResponse(data, mimetype="application/json")
+
     # callback for human-approved removal of BCI and non-BCI duplicates
     @app.route(route="recommender/approve/{instance_id}", methods=["POST"])
     @app.durable_client_input(client_name="client")
@@ -110,6 +127,19 @@ def register_recommender(app: df.DFApp):
             return func.HttpResponse("Invalid JSON", status_code=400)
         removed_ids = body.get("removed_ids", [])
         await client.raise_event(instance_id, "duplicate_approval", {"removed_ids": removed_ids})
+        return func.HttpResponse(status_code=200)
+    
+    # callback for human selection of lead IDs to run through recommender for BU suggestions
+    @app.route(route="recommender/select/{instance_id}", methods=["POST"])
+    @app.durable_client_input(client_name="client")
+    async def select_leads(req: func.HttpRequest, client: df.DurableOrchestrationClient):
+        instance_id = req.route_params["instance_id"]
+        try:
+            body = req.get_json()
+        except ValueError:
+            return func.HttpResponse("Invalid JSON", status_code=400)
+        selected_lead_ids = body.get("selected_lead_ids", [])
+        await client.raise_event(instance_id, "lead_selection", {"selected_lead_ids": selected_lead_ids})
         return func.HttpResponse(status_code=200)
 
     @app.route(route="recommender/status/{instance_id}", methods=["GET"])
@@ -138,3 +168,4 @@ def register_recommender(app: df.DFApp):
     app.register_functions(domain_agents_bp)
     app.register_functions(aggregate_and_finalize_results_bp)
     app.register_functions(store_duplicates_for_review_bp)
+    app.register_functions(store_bci_and_nonbci_bp)

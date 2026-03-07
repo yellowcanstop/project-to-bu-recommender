@@ -8,16 +8,6 @@ from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
-'''
-Orchestrates:
-Activity 1: Download & Filter BCI (per BU)
-Activity 2: Download Non-BCI
-Activity 3: Deduplication (embeddings)
-Activity 4: Human Approval of Duplicates (wait for external event)
-Activity 5: Extract Signals (LLM per project lead)
-Activity 6: Domain Agents + Synthesizer (per project lead)
-Activity 7: Store Results
-'''
 
 name = "recommender_orchestrator"
 main = df.Blueprint()
@@ -54,7 +44,6 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         logger.info(f">>> Filtered BCI leads count: {len(filtered_leads)}")
         logger.info(f">>> BU assignments: {bu_assignments}")
     
-    
     # ──────────────────────────────────────────────
     # PHASE 2+3: Download Non-BCI + Deduplication
     # ──────────────────────────────────────────────
@@ -84,8 +73,8 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
             "duplicates": duplicate_candidates,
         })
         context.set_custom_status({
-            "phase": "Duplicates identified! Awaiting user action...", 
-            "progress": 30, 
+            "phase": "Duplicates found! Choose duplicates to remove...", 
+            "progress": 25, 
             "has_duplicates": True,
             "duplicate_count": len(duplicate_candidates),
             "processed_count": 0,
@@ -101,8 +90,8 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         removed_ids = approval.get("removed_ids", [])
     else:
         context.set_custom_status({
-            "phase": "No duplicates found! Proceeding to the recommender...",
-            "progress": 30,
+            "phase": "No duplicates found! Proceeding...",
+            "progress": 28,
             "processed_count": 0,
             "total_count": total_leads,
             "batch_number": 0,
@@ -110,20 +99,37 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         })
         removed_ids = []
 
-    # Filter out removed non-BCI duplicates (they're confirmed duplicates of BCI)
-    # remaining non-BCI leads: TODO lightweight llm classifier to infer category/sector then also go through phase 5+6
-    if not context.is_replaying:
-        logger.info(f">>> User approved removal of {len(removed_ids)} duplicates: {removed_ids}")
+    combined_result = yield context.call_activity("store_bci_and_nonbci", {
+        "filter_results": filter_result,
+        "removed_ids": removed_ids,
+        "non_bci_blob_name": nbci_name
+    })
+
+    # ──────────────────────────────────────────────
+    # PHASE: Show filtered BCI leads and final non-BCI leads for user to select the leads to run through the recommender for BU suggestions. Wait for external event with selected lead IDs.
+    # ──────────────────────────────────────────────
+    context.set_custom_status({
+        "phase": "Select Leads for AI...",
+        "progress": 28,
+        "selection_required": True,
+        "selection_done": False
+    })
+    lead_selection = yield context.wait_for_external_event("lead_selection")
+    if isinstance(lead_selection, str):
+        lead_selection = json.loads(lead_selection)
+    selected_lead_ids = lead_selection.get("selected_lead_ids", [])
+    leads_for_recommender = [l for l in combined_result['combined_leads'] if l['id'] in selected_lead_ids and l['source'] == 'bci']
+    # TODO pending recommendation-support for non-BCI
 
     # ──────────────────────────────────────────────
     # PHASE 5+6: Batched fan-out/fan-in
     # ──────────────────────────────────────────────
     temp_paths = []
-    total_leads = len(filtered_leads)
+    total_leads = len(leads_for_recommender)
     total_batches = (total_leads + batch_size - 1) // batch_size
 
     for i in range(0, total_leads, batch_size):
-        batch = filtered_leads[i : i + batch_size]
+        batch = leads_for_recommender[i : i + batch_size]
         batch_idx = (i // batch_size) + 1
         
         current_batch_progress = int((i / total_leads) * 60)
@@ -133,8 +139,8 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
             "progress": 30 + current_batch_progress,
             "batch_number": batch_idx,
             "total_batches": total_batches,
-            "processed_count": i + len(batch), # Change: Show leads currently being handled
-            "processing_range": f"{i+1}-{min(i+batch_size, total_leads)}", # Extra info for UX
+            "processed_count": i + len(batch), 
+            "processing_range": f"{i+1}-{min(i+batch_size, total_leads)}", 
             "total_count": total_leads
         })
 
@@ -149,7 +155,6 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         batch_results = yield context.task_all(parallel_tasks)
         temp_paths.extend(batch_results)
 
-        # Optional: Throttling / Rate Limiting
         # 2-3 seconds of breathing room between batches
         fire_at = context.current_utc_datetime + timedelta(seconds=2)
         yield context.create_timer(fire_at)
