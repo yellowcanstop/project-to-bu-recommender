@@ -100,6 +100,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         removed_ids = []
 
     combined_result = yield context.call_activity("store_bci_and_nonbci", {
+        "instance_id": context.instance_id,
         "filter_results": filter_result,
         "removed_ids": removed_ids,
         "non_bci_blob_name": nbci_name
