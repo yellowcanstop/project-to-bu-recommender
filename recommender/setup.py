@@ -18,6 +18,7 @@ from recommender.activities.domain_agents import blueprint as domain_agents_bp
 from recommender.activities.aggregate_and_finalize_results import blueprint as aggregate_and_finalize_results_bp
 from recommender.activities.store_duplicates_for_review import blueprint as store_duplicates_for_review_bp
 from recommender.activities.store_bci_and_nonbci import blueprint as store_bci_and_nonbci_bp
+from recommender.activities.get_selected_leads import blueprint as get_selected_leads_bp
 
 logger = logging.getLogger(__name__)
 
@@ -169,3 +170,4 @@ def register_recommender(app: df.DFApp):
     app.register_functions(aggregate_and_finalize_results_bp)
     app.register_functions(store_duplicates_for_review_bp)
     app.register_functions(store_bci_and_nonbci_bp)
+    app.register_functions(get_selected_leads_bp)

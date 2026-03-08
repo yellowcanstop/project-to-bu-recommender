@@ -113,7 +113,6 @@ async def store_bci_and_nonbci(input_data: dict) -> dict:
     return {
         "status": "success",
         "blob_path": f"{output_container}/{output_blob_name}",
-        "combined_leads": combined_leads,
         "counts": {
             "bci": filter_results.get("total_filtered", 0),
             "non_bci": len(clean_nbci_rows)

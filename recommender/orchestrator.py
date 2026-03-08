@@ -99,7 +99,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
         })
         removed_ids = []
 
-    combined_result = yield context.call_activity("store_bci_and_nonbci", {
+    yield context.call_activity("store_bci_and_nonbci", {
         "instance_id": context.instance_id,
         "filter_results": filter_result,
         "removed_ids": removed_ids,
@@ -119,9 +119,15 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     if isinstance(lead_selection, str):
         lead_selection = json.loads(lead_selection)
     selected_lead_ids = lead_selection.get("selected_lead_ids", [])
-    leads_for_recommender = [l for l in combined_result['combined_leads'] if l['id'] in selected_lead_ids and l['source'] == 'bci']
-    # TODO pending recommendation-support for non-BCI
 
+    # ──────────────────────────────────────────────
+    # PHASE: Get stored leads which user has selected to run through the recommender for BU suggestions. 
+    # ──────────────────────────────────────────────
+    leads_for_recommender = yield context.call_activity("get_selected_leads_for_recommender", {
+        "instance_id": context.instance_id,
+        "selected_lead_ids": selected_lead_ids
+    })
+    
     # ──────────────────────────────────────────────
     # PHASE 5+6: Batched fan-out/fan-in
     # ──────────────────────────────────────────────
