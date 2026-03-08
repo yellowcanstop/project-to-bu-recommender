@@ -55,8 +55,10 @@ async def store_bci_and_nonbci(input_data: dict) -> dict:
         )
 
         if removed_ids:
+            # Ensure removed_ids is a list of strings to match the column type
+            removed_ids_str = [str(i) for i in removed_ids]
             non_bci_df = non_bci_df.filter(
-                ~pl.col("GSM Project ID").is_in(removed_ids)
+                ~pl.col("GSM Project ID").cast(pl.Utf8).is_in(removed_ids_str)
             )
 
         # Convert to JSON-safe list (handling NaNs)

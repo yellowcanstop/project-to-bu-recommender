@@ -81,6 +81,11 @@ async def filter_bci(input_data: dict) -> dict:
 
     df = pl.read_excel(io.BytesIO(content))
 
+    # Force ID columns to string early to avoid schema mismatches later
+    for col in df.columns:
+        if "ID" in str(col):
+            df = df.with_columns(pl.col(col).cast(pl.Utf8, strict=False))
+
     # The excel file may have multiple header rows or leading metadata before actual header we want (which contains "Project ID").
     # Strip whitespace from existing column names just in case it read correctly
     df = df.rename({c: str(c).strip() for c in df.columns})

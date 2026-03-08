@@ -25,6 +25,8 @@ async def deduplicate(input_data: dict) -> dict:
     filtered_bci_leads = input_data["filtered_bci_leads"]
 
     bci_df = pl.DataFrame(filtered_bci_leads)
+    if not bci_df.is_empty():
+        bci_df = bci_df.with_columns(pl.col("Project ID").cast(pl.Utf8))
 
     # Download non-BCI file
     blob_url = input_data.get("blob_account_url") or app_settings.blob_account_url
@@ -183,5 +185,13 @@ def find_and_normalize(df: pl.DataFrame, source_sheet: str) -> pl.DataFrame:
     for col in target_cols:
         if col not in df.columns:
             df = df.with_columns(pl.lit(None).alias(col))
+
+    # Force specific types and clean strings
+    # This prevents concat errors and ensures .is_in() works later
+    df = df.with_columns([
+        pl.col("GSM Project ID").cast(pl.Utf8).str.strip_chars().fill_null(""),
+        pl.col("Project").cast(pl.Utf8).fill_null(""),
+        pl.col("Province").cast(pl.Utf8).fill_null("")
+    ])
 
     return df.with_columns(pl.lit(source_sheet).alias("source_sheet"))

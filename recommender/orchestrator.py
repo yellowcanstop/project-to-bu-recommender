@@ -123,7 +123,7 @@ def recommender_orchestrator(context: df.DurableOrchestrationContext):
     # ──────────────────────────────────────────────
     # PHASE: Get stored leads which user has selected to run through the recommender for BU suggestions. 
     # ──────────────────────────────────────────────
-    leads_for_recommender = yield context.call_activity("get_selected_leads_for_recommender", {
+    leads_for_recommender = yield context.call_activity("get_selected_leads", {
         "instance_id": context.instance_id,
         "selected_lead_ids": selected_lead_ids
     })
